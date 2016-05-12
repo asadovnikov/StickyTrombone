@@ -1,9 +1,0 @@
-{
-  "generator-angm": {
-    "appName": "stickytrombone",
-    "angularCookies": true,
-    "angularAnimate": true,
-    "angularSanitize": true,
-    "angularMaterial": true
-  }
-}
