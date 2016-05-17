@@ -1,0 +1,55 @@
+.acme-navbar-text{
+  color: white;
+}
+
+a {
+  color: black;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0;
+  line-height: 1.25em;
+}
+
+a:hover, a:focus {
+  color: greenyellow;
+}
+$decision-item-height: 3.2em;
+.decision-panel{
+  //&.drop-active{
+  //  border: 4px dashed #ccc;
+  //}
+  text-transform: uppercase;
+  .decision-panel_do-not-do{
+    background-color: #df7f43;
+    height: $decision-item-height;
+    text-align: center;
+    padding-top: .8em;
+    &.drop-target {
+      color: #000;
+      background-color: #4e4;
+    }
+  }
+  .decision-panel_do-it-later{
+    background-color: #ffc958;
+    height: $decision-item-height;
+    text-align: center;
+    padding-top: .8em;
+    &.drop-target {
+      color: #000;
+      background-color: #4e4;
+    }
+  }
+
+  .decision-panel_do-it{
+    background-color: #9bcf63;
+    height: $decision-item-height;
+    text-align: center;
+    padding-top: .8em;
+    &.drop-target {
+      color: #000;
+      background-color: #4e4;
+    }
+  }
+}

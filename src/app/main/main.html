@@ -1,0 +1,81 @@
+<div >
+  <md-button class="md-fab md-mini" aria-label="Eat cake">
+    <i class="material-icons">add</i>
+  </md-button>
+  <div class="project-settings" layout="row" layout-align="end center">
+    <div>Проект:</div>
+    <md-menu md-position-mode="target-right target">
+    <md-button md-no-ink class="md-primary" ng-click="main.openSelectProjectMenu($mdOpenMenu, $event)">IMWU</md-button>
+      <md-menu-content width="4">
+        <md-menu-item>
+          <md-button ng-click="ctrl.redial($event)">
+            Project 1
+          </md-button>
+        </md-menu-item>
+        <md-menu-item>
+          <md-button ng-click="ctrl.checkVoicemail()">
+            Project 2
+          </md-button>
+        </md-menu-item>
+        <md-menu-divider></md-menu-divider>
+        <md-menu-item>
+          <md-button ng-click="ctrl.toggleNotifications()">
+            Добавить проект
+          </md-button>
+        </md-menu-item>
+      </md-menu-content>
+    </md-menu>
+    <div>Сортировка:</div>
+    <md-menu md-position-mode="target-right target">
+      <md-button md-no-ink class="md-primary" ng-click="main.openOrderType($mdOpenMenu, $event)">{{main.orderTypeText}}</md-button>
+      <md-menu-content width="4">
+        <md-menu-item>
+          <md-button ng-click="main.changeOrderType('-id', $event)">
+            дате создания
+          </md-button>
+        </md-menu-item>
+        <md-menu-item>
+          <md-button ng-click="main.changeOrderType('-likes', $event)">
+            по просмотрам
+          </md-button>
+        </md-menu-item>
+      </md-menu-content>
+    </md-menu>
+  </div>
+  <md-content>
+
+    <div flex layout-align="space-between stretch" class="main-content">
+      <md-grid-list
+        md-cols="1" md-cols-sm="2" md-cols-md="3" md-cols-gt-md="12"
+        md-row-height="1em"
+        md-gutter="30px" md-gutter-gt-sm="30px">
+        <md-grid-tile ng-repeat="awesomeThing in main.awesomeThings | orderBy: main.orderField"
+                      class="droppable draggable drag-drop md-whiteframe-1dp"
+                      md-rowspan="{{awesomeThing.row}}"
+                      item-id = "{{awesomeThing.id}}"
+                      md-colspan="{{awesomeThing.col}}" layout="row" layout-align="center stretch">
+            <div flex layout="column" layout-align="center stretch" style="align-self: stretch">
+              <div flex class="tile-text">
+                <p>{{ awesomeThing.description }}</p>
+              </div>
+              <div class="action-panel">
+                <div flex layout="row">
+                  <md-button aria-label="like" class="md-icon-button" ng-click="main.addLike(awesomeThing.id)">
+                    <i class="material-icons" ng-class="awesomeThing.liked ? 'item-liked' : 'item-waiting-for-like'">favorite_border</i>
+                  </md-button>
+
+                  <div class="likes-count">{{awesomeThing.likes}}</div>
+                  <div flex class="author">{{awesomeThing.fname}} {{awesomeThing.lname}}</div>
+                </div>
+              </div>
+            </div>
+            <div flex="40" ng-if="awesomeThing.hasImage" class="tile-image"><img src="{{awesomeThing.img}}" /></div>
+        </md-grid-tile>
+      </md-grid-list>
+    </div>
+    <footer>
+      <acme-navbar creation-date="main.creationDate" parent-model="main"></acme-navbar>
+    </footer>
+  </md-content>
+
+</div>

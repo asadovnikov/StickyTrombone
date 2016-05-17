@@ -1,0 +1,188 @@
+/**
+ *  Do not remove the comment below. It's the markers used by wiredep to inject
+ *  sass dependencies when defined in the bower.json of your dependencies
+ */
+// bower:scss
+// endbower
+
+@import url(http://fonts.googleapis.com/css?family=Roboto+Slab:400,700|Roboto:400,700,700italic,400italic);
+
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(../../bower_components/material-design-iconfont/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url(../../bower_components/material-design-iconfont/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
+       url(../../bower_components/material-design-iconfont/iconfont/MaterialIcons-Regular.woff) format('woff'),
+       url(../../bower_components/material-design-iconfont/iconfont/MaterialIcons-Regular.ttf) format('truetype');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+html {
+  font-family: 'Roboto Slab', serif;
+
+}
+
+[layout=row] {
+  flex-direction: row;
+}
+
+.browsehappy {
+  margin: 0.2em 0;
+  background: #ccc;
+  color: #000;
+  padding: 0.2em 0;
+}
+.md-fab{
+  position: absolute;
+  top: 10px;
+  left: 5px;
+  i{
+    padding-top: 8px;
+  }
+}
+
+.project-settings{
+  height: 3em;
+  width: 100%;
+  background-color: #f1f1f1;
+  padding-right: 30px;
+
+  div{
+    padding-left: 50px;
+  }
+  .md-primary{
+    margin: 0;
+    min-width: 0;
+    padding: 3px 0 0 5px;
+    span{
+      border-bottom: 1px dotted rgb(63,81,181);
+      text-transform: none;
+    }
+  }
+}
+
+md-toolbar.md-default-theme {
+  background-color: black;
+}
+
+section.jumbotron {
+  margin-bottom: 30px;
+  padding: 1px 30px;
+  background-color: #5aadbb;
+  text-align: center;
+
+  color: white;
+
+  h1 {
+    font-size: 3em;
+  }
+}
+
+.techs {
+  display: flex;
+  md-grid-tile {
+    transition: all 300ms ease-out 50ms; }
+
+  md-card {
+    width: 30%;
+
+    img.pull-right {
+      float: right;
+      width: 100px;
+    }
+  }
+}
+
+footer{
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.drag-drop.can-drop {
+  color: #000;
+  background-color: #4e4;
+}
+
+.item-liked{
+  color: #fb4848 !important;
+}
+
+.main-content{
+  background-color: #f1f1f1;
+  padding: 0 30px 150px;
+
+  md-grid-tile{
+    background-color: white;
+    border-radius: 4px;
+    .tile-text{
+      align-self: stretch
+    }
+    .action-panel{
+      height: 3em;
+      width: 100%;
+      .material-icons{
+        color: #ccc;
+      }
+
+
+      //align-self: stretch;
+    }
+    .tile-image{
+      height: 100%;
+    }
+    .likes-count{
+      padding-top: 10px;
+      color: #ccc;
+    }
+    .author{
+      //position: absolute;
+      //right: 12px;
+      //bottom: 12px;
+      padding-top: 10px;
+      text-align: right;
+      padding-right: 10px;
+      color: #ccc;
+    }
+    md-grid-tile-footer{
+      background-color: transparent;
+      color: #ccc;
+
+    }
+  }
+}
+
+/**
+ *  Do not remove the comment below. It's the markers used by gulp-inject to inject
+ *  all your sass files automatically
+ */
+// injector
+// endinjector
