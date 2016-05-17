@@ -17,7 +17,7 @@
   });
 
   /** @ngInject */
-  function MainController($timeout, $http, toastr, $filter, $scope) {
+  function MainController($timeout, $http, toastr, $filter, $scope, $mdDialog) {
     var vm = this;
 
     vm.awesomeThings = [];
@@ -32,12 +32,166 @@
     vm.orderTypeText = 'по просмотрам';
     var originatorEv;
     var selectOrderItem;
+    //vm.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
+
+    vm.viewPost = function(postId, ev){
+      ev.stopPropagation();
+      var postItem = $filter('getById')(vm.awesomeThings, postId);
+      $mdDialog.show({
+        controller: ViewPostController,
+        template: '<md-dialog aria-label="viewPost" ng-cloak>' +
+        '<form class="a-md-dialog post-view-dialog">' +
+          '<div flex layout="row">' +
+            '<div flex layout="column" layout-align="center stretch" style="align-self: stretch">' +
+              '<div flex class="tile-text">' +
+                '<p>{{post.description }}</p>' +
+              '</div>' +
+            '<div class="action-panel">' +
+              '<div flex layout="row">' +
+                '<md-button aria-label="like" class="md-icon-button">' +
+                  '<i class="material-icons">favorite_border</i>' +
+                '</md-button>' +
+                '<div class="likes-count">{{post.likes}}</div>' +
+                '<div flex class="author">{{post.fname}} {{post.lname}}</div>' +
+              '</div>' +
+            '</div>' +
+            '</div>' +
+            '<div flex="40" ng-if="post.hasImage" class="tile-image" ng-style="{\'background\' : \'url({{post.img}}) no-repeat\'}"></div>' +
+          '</div>' +
+          '<div flex layout="column" class="post-comments-area">' +
+            '<div class="comment-to-post" ng-repeat="comment in comments" layout="row">' +
+                '<div>' +
+                  '<div class="comment-avatar" ng-style="{\'background\' : \'url({{comment.avatar}}) no-repeat\'}"></div>' +
+                '</div>' +
+                '<div layout="column" class="comment-info">' +
+                  '<div class="comment-user-name">{{comment.fname}} {{comment.lname}}</div>'+
+                  '<div class="comment-text">{{comment.description}}</div>'+
+                ' </div>' +
+            '</div>' +
+            '<div class="my-comment-container" layout="row">' +
+              '<div class="avatar-container">' +
+                '<div class="my-avatar-small"></div>'+
+              '</div>'+
+              '<md-input-container flex="100">' +
+                '<label>Оставьте комментарий...</label>' +
+                '<input ng-model="myComment">' +
+              '</md-input-container>' +
+            '</div>' +
+          '</div>'+
+        '</form>' +
+        '</md-dialog>',
+        locals:{
+          post: postItem
+        },
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose:true,
+        fullscreen: false
+      });
+    };
+
+    function ViewPostController($scope, $mdDialog, post){
+      $scope.post = post;
+      $scope.myComment = "";
+      var config = {
+        params: {
+          'rows': 3,
+          'fname': '{firstName}',
+          'lname': '{lastName}',
+          'description': '{lorem|15}',
+          'callback': "JSON_CALLBACK",
+          'id': '{index}'
+        }
+      };
+      $http.jsonp("http://www.filltext.com", config, {}).
+      success(function (data) {
+        angular.forEach(data, function(received){
+            received.avatar = "https://unsplash.it/100/100?random";
+        });
+        $scope.comments = data;
+        $scope.digest();
+      });
+    };
 
 
     vm.openSelectProjectMenu = function($mdOpenMenu, ev){
       originatorEv = ev;
       $mdOpenMenu(ev);
     };
+
+    vm.createPost = function(ev){
+      //var useFullScreen = ($mdMedia('sm') || $mdMedia('xs'))  && vm.customFullscreen;
+      $mdDialog.show({
+        controller: DialogController,
+        template: '<md-dialog aria-label="create a post" class="create-post-dailog" ng-cloak>' +
+        '<form>' +
+        '<div layout-align="column" class="a-md-dialog">' +
+        '  <div flex="100" class="input-container">' +
+        '   <md-input-container flex class="create-post-input md-block">' +
+        '     <label>Есть идея? Пиши прямо тут!</label>' +
+        '     <textarea rows="2" ng-paste="handlePaste($event)" ng-model="postText" hotkey="{\'shift+enter\': createNewPost}"></textarea> ' +
+        '   </md-input-container>' +
+          '<img src="{{imageUrl}}" style="height: 66px; width: 66px;" ng-show="imageUrl.length > 0" />'+
+        ' </div>' +
+        ' <div flex="100" class="create-post-hint" ng-hide="imageUrl.length > 0">Чтобы присоединить картинку, перетяни ее в окно браузера или просто вставь ссылку.</div>' +
+
+        '</div>' +
+
+        '<md-button flex="100" class="create-post-btn" ng-show="postText.length > 0" ng-click="createNewPost()">Запостить!</md-button>' +
+
+        '<div class="create-post-action-hint" ng-show="postText.length > 0" >Подсказка: ⇧ + Enter</div>'+
+        '</form>' +
+        '</md-dialog>'
+        ,
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose:false,
+        fullscreen: false
+      }).then(function(post){
+        var hasImage = post.image.length > 0;
+        vm.awesomeThings.push(
+          {
+            'fname' : 'Me',
+            'lname': 'Gusta',
+            'description' : post.text,
+            'likes' : 0,
+            'img' : post.image,
+            'hasImage' : hasImage,
+            'col' : 4,
+            'row' : 8,
+            'id' : 101
+          });
+          $scope.$apply();
+          $scope.$digest();
+      });
+    };
+
+    function DialogController($scope, $mdDialog) {
+      $scope.postText = "";
+      $scope.imageUrl = "";
+      $scope.hide = function() {
+        $mdDialog.hide();
+      };
+      $scope.cancel = function() {
+        $mdDialog.cancel();
+      };
+      $scope.createNewPost = function() {
+        console.log($scope.postText);
+        $mdDialog.hide({'text' : $scope.postText, 'image' : $scope.imageUrl});
+      };
+      $scope.handlePaste = function(e){
+        for (var i = 0 ; i < e.originalEvent.clipboardData.items.length ; i++) {
+          var item = e.originalEvent.clipboardData.items[i];
+          if (item.type.indexOf("image") != -1) {
+            var urlCreator = window.URL || window.webkitURL;
+            var imageUrl = urlCreator.createObjectURL( item.getAsFile() );
+            $scope.imageUrl = imageUrl;
+          } else {
+            console.log("Discarding non-image paste data");
+          }
+        }
+      };
+    }
 
     vm.openOrderType = function($mdOpenMenu, ev){
       selectOrderItem = ev;
@@ -211,7 +365,7 @@
         }
         if(rowSpan%10 > 3)
         {
-          received.img = "https://unsplash.it/172/338?random";
+          received.img = "https://unsplash.it/300/500?random";
           colSpan+=2;
           received.hasImage = true;
         }

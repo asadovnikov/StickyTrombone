@@ -1,5 +1,5 @@
 <div >
-  <md-button class="md-fab md-mini" aria-label="Eat cake">
+  <md-button class="md-fab md-mini" aria-label="Eat cake" ng-click="main.createPost($event)" >
     <i class="material-icons">add</i>
   </md-button>
   <div class="project-settings" layout="row" layout-align="end center">
@@ -55,7 +55,7 @@
                       item-id = "{{awesomeThing.id}}"
                       md-colspan="{{awesomeThing.col}}" layout="row" layout-align="center stretch">
             <div flex layout="column" layout-align="center stretch" style="align-self: stretch">
-              <div flex class="tile-text">
+              <div flex class="tile-text" ng-click="main.viewPost(awesomeThing.id, $event)">
                 <p>{{ awesomeThing.description }}</p>
               </div>
               <div class="action-panel">
@@ -69,7 +69,7 @@
                 </div>
               </div>
             </div>
-            <div flex="40" ng-if="awesomeThing.hasImage" class="tile-image"><img src="{{awesomeThing.img}}" /></div>
+            <div flex="40" ng-if="awesomeThing.hasImage" class="tile-image" ng-style="{'background' : 'url({{awesomeThing.img}}) no-repeat'}"></div>
         </md-grid-tile>
       </md-grid-list>
     </div>

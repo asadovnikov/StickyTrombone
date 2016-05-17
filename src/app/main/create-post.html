@@ -1,0 +1,22 @@
+<md-dialog aria-label="viewPost" ng-cloak>
+  <form>
+    <div flex layout="row" class="a-md-dialog">
+      <div flex layout="column" layout-align="center stretch" style="align-self: stretch">
+        <div flex class="tile-text">
+          <p>{{post.description }}</p>
+        </div>
+        <div class="action-panel">
+          <div flex layout="row">
+            <md-button aria-label="like" class="md-icon-button"">
+              <i class="material-icons" ng-class="post.liked ? 'item-liked' : 'item-waiting-for-like'">favorite_border</i>
+            </md-button>
+
+            <div class="likes-count">{{post.likes}}</div>
+            <div flex class="author">{{post.fname}} {{post.lname}}</div>
+          </div>
+        </div>
+      </div>
+      <div flex="40" ng-if="post.hasImage" class="tile-image" ng-style="{'background' : 'url({{post.img}}) no-repeat'}"></div>
+    </div>
+  </form>
+</md-dialog>
