@@ -52,9 +52,14 @@
   font-feature-settings: 'liga';
 }
 
-html {
+html, body {
   font-family: 'Avenir', "Helvetica Neue", 'Roboto Slab', serif;
+  background-color: #f0f0f0;
+  height: 100%;
+}
 
+*{
+  outline: 0;
 }
 
 [layout=row] {
@@ -82,6 +87,14 @@ html {
   background-color: #f1f1f1;
   padding-right: 30px;
 
+  .back-to-all-items{
+    .back-icon{
+      padding-left: 50px;
+      color: #4A90E2;
+      padding-top: 10px;
+    }
+  }
+
   div{
     padding-left: 50px;
   }
@@ -90,8 +103,9 @@ html {
     min-width: 0;
     padding: 3px 0 0 5px;
     span{
-      border-bottom: 1px dotted rgb(63,81,181);
+      border-bottom: 1px dotted #4A90E2;;
       text-transform: none;
+      color: #4A90E2;
     }
   }
 }
@@ -128,6 +142,19 @@ section.jumbotron {
   }
 }
 
+.current-state-indicator{
+  height: 5px;
+  &.do{
+    background-color: #0EAD69;
+  }
+  &.doLater{
+    background-color: #F5A623;
+  }
+  &.doNotDo{
+    background-color: #DF4545;
+  }
+}
+
 footer{
   position: fixed;
   bottom: 0;
@@ -136,8 +163,15 @@ footer{
 }
 
 .drag-drop.can-drop {
-  color: #000;
-  background-color: #4e4;
+  &.do{
+    border: 3px solid #0EAD69;
+  }
+  &.do-later{
+    border: 3px solid #F5A623;
+  }
+  &.do-not-do{
+    border: 3px solid #DF4545;
+  }
 }
 
 .item-liked{
@@ -145,20 +179,41 @@ footer{
 }
 
 .main-content{
-  background-color: #f1f1f1;
+  background-color: #f0f0f0;
   padding: 0 30px 150px;
+  height: 100%;
 
   md-grid-tile{
     background-color: white;
     border-radius: 4px;
     .tile-text{
-      align-self: stretch
+      align-self: stretch;
+      color: #333;
+      padding-left: 20px;
+      padding-top: 20px;
+      padding-right: 10px;
+
+      p{
+        -webkit-margin-before: 0;
+        -webkit-margin-after: 0;
+      }
+
+      &.small-item{
+        font-size: 14px;
+      }
+      &.medium-item{
+        font-size: 24px;
+      }
+      &.big-item{
+        font-size: 36px;
+      }
     }
     .action-panel{
       height: 3em;
       width: 100%;
       .material-icons{
-        color: #ccc;
+        font-size: 14px;
+        color: rgba(51,51,51, 0.3);
       }
 
 
@@ -175,7 +230,8 @@ footer{
     }
     .likes-count{
       padding-top: 10px;
-      color: #ccc;
+      font-size: 14px;
+      color: rgba(51,51,51, 0.3);
     }
     .author{
       //position: absolute;
@@ -184,7 +240,8 @@ footer{
       padding-top: 10px;
       text-align: right;
       padding-right: 10px;
-      color: #ccc;
+      font-size: 14px;
+      color: rgba(51,51,51, 0.3);
     }
     md-grid-tile-footer{
       background-color: transparent;
@@ -262,6 +319,10 @@ md-dialog{
 .a-md-dialog{
   border-radius: 4px;
   background-color: #fff;
+}
+
+.start-dragging{
+  z-index: 500;
 }
 
 .post-view-dialog{

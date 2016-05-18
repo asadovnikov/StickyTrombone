@@ -1,55 +1,81 @@
 .acme-navbar-text{
   color: white;
 }
-
-a {
-  color: black;
-}
-
-h1 {
-  font-size: 2em;
-  margin: 0;
-  line-height: 1.25em;
-}
-
-a:hover, a:focus {
-  color: greenyellow;
-}
-$decision-item-height: 3.2em;
+$decision-item-height: 64px;
 .decision-panel{
   //&.drop-active{
   //  border: 4px dashed #ccc;
   //}
+  &.do{
+    .decision-panel_do-it{
+      height: 70px;
+    }
+  }
+  &.doLater{
+    .decision-panel_do-it-later{
+      height: 70px;
+    }
+  }
+  &.doNotDo{
+    .decision-panel_do-not-do{
+      height: 70px;
+    }
+  }
   text-transform: uppercase;
-  .decision-panel_do-not-do{
-    background-color: #df7f43;
+  background-color: transparent !important;
+  .decision-panel_do-not-do, .decision-panel_do-it-later, .decision-panel_do-it{
+    vertical-align: middle;
+    line-height: $decision-item-height;
     height: $decision-item-height;
     text-align: center;
-    padding-top: .8em;
+    font-size: 14px;
+  }
+
+  .decision-panel_do-not-do{
+    background-color: #DF4545;
     &.drop-target {
-      color: #000;
-      background-color: #4e4;
+      height: 70px;
+      line-height: 70px;
     }
   }
   .decision-panel_do-it-later{
-    background-color: #ffc958;
-    height: $decision-item-height;
-    text-align: center;
-    padding-top: .8em;
+    background-color: #F5A623;
     &.drop-target {
-      color: #000;
-      background-color: #4e4;
+      height: 70px;
+      line-height: 70px;
     }
   }
 
   .decision-panel_do-it{
-    background-color: #9bcf63;
-    height: $decision-item-height;
-    text-align: center;
-    padding-top: .8em;
+    background-color: #0EAD69;
     &.drop-target {
-      color: #000;
-      background-color: #4e4;
+      height: 70px;
+      line-height: 70px;
     }
   }
+
+  .do-not-do-items-count{
+    float: right;
+    background-color: #C63939;
+  }
+  .do-later-items-count{
+    float: right;
+    background-color: #CF8914;
+  }
+
+  .do-items-count{
+    float: right;
+    background-color: #0D8B55;
+  }
+
+  .numberCircle {
+    bottom: -19px;
+    right: 25px;
+    padding: 2px 9px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 21px;
+    position: relative;
+  }
+
 }

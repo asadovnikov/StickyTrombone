@@ -21,6 +21,7 @@
     var vm = this;
 
     vm.awesomeThings = [];
+    vm.viewState = 'all';
     vm.toDoItems = [];
     vm.doLaterItems = [];
     vm.doNotDoItems = [];
@@ -33,6 +34,16 @@
     var originatorEv;
     var selectOrderItem;
     //vm.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
+
+    vm.refresh = function(newItems, state){
+      vm.awesomeThings = newItems;
+      vm.viewState = state;
+    };
+
+    vm.loadAllPosts = function(){
+      vm.viewState = 'all';
+      vm.awesomeThings = vm.currentData;
+    };
 
     vm.viewPost = function(postId, ev){
       ev.stopPropagation();
@@ -109,7 +120,7 @@
             received.avatar = "https://unsplash.it/100/100?random";
         });
         $scope.comments = data;
-        $scope.digest();
+        //$scope.digest();
       });
     };
 
@@ -149,6 +160,11 @@
         fullscreen: false
       }).then(function(post){
         var hasImage = post.image.length > 0;
+        var col = 2;
+        if(hasImage)
+        {
+          col +=1;
+        }
         vm.awesomeThings.push(
           {
             'fname' : 'Me',
@@ -157,12 +173,13 @@
             'likes' : 0,
             'img' : post.image,
             'hasImage' : hasImage,
-            'col' : 4,
-            'row' : 8,
+            'col' : col,
+            'row' : 4,
+            'itemStyle' : "medium-item",
             'id' : 101
           });
-          $scope.$apply();
-          $scope.$digest();
+          //$scope.$apply();
+          //$scope.$digest();
       });
     };
 
@@ -201,8 +218,8 @@
     vm.changeOrderType = function(value, ev){
       vm.orderField = value;
       vm.orderTypeText = ev.currentTarget.innerText;
-      $scope.$apply();
-      $scope.$digest();
+      //$scope.$apply();
+      //$scope.$digest();
     };
 
     interact('.draggable')
@@ -226,6 +243,7 @@
         // call this function on every dragend event
         onend: function (event) {
           event.target.setAttribute('startDrag', 'false');
+          event.target.classList.remove('start-dragging');
           var target = event.target,
           // keep the dragged position in the data-x/data-y attributes
             x = (parseFloat(target.getAttribute('initial-data-x')) || 0),
@@ -238,6 +256,7 @@
       });
 
     function dragMoveListener (event) {
+      event.target.classList.add('start-dragging');
       if(event.target.getAttribute('startDrag') !== 'true')
       {
         event.target.setAttribute('initial-data-x', event.dx);
@@ -275,6 +294,13 @@
         var draggableElement = event.relatedTarget,
           dropzoneElement = event.target;
 
+        var previousState = draggableElement.getAttribute('stored-state');
+        draggableElement.classList.remove(previousState);
+
+        var newState = dropzoneElement.getAttribute('drop-area');
+        draggableElement.classList.add(newState);
+        draggableElement.setAttribute('stored-state', newState);
+
         // feedback the possibility of a drop
         dropzoneElement.classList.add('drop-target');
         draggableElement.classList.add('can-drop');
@@ -282,6 +308,9 @@
       },
       ondragleave: function (event) {
         // remove the drop feedback style
+        var previousState = event.relatedTarget.getAttribute('stored-state');
+        event.relatedTarget.classList.remove(previousState);
+
         event.target.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
         //event.relatedTarget.textContent = 'Dragged out';
@@ -304,8 +333,8 @@
         }
 
         vm.awesomeThings.splice(index, 1);
-        $scope.$apply();
-        $scope.$digest();
+        //$scope.$apply();
+        //$scope.$digest();
         //event.relatedTarget.textContent = 'Dropped';
       },
       ondropdeactivate: function (event) {
@@ -346,7 +375,7 @@
         'fname': '{firstName}',
         'lname': '{lastName}',
         'description': '{lorem|10}',
-        'likes' : '{number|50}',
+        'likes' : '{number|70}',
         'callback': "JSON_CALLBACK",
         'id': '{index}'
       }
@@ -357,23 +386,48 @@
       angular.forEach(data, function(received){
         //if has image, and col span 2 should be set
 
-        var rowSpan  = Math.floor(received.likes/10);
-        var colSpan = Math.floor(rowSpan/2);
-        if(colSpan === 0)
+        var ratio  = Math.floor(received.likes/10);
+        var rowSpan = 1;
+        var colSpan = 1;
+
+        if(ratio > 4)
         {
-          colSpan +=1;
+          received.itemStyle = "big-item";
+          rowSpan = 5;
+          colSpan = 2;
         }
-        if(rowSpan%10 > 3)
+        else if(ratio >2 && ratio >= 4)
+        {
+          received.itemStyle = "medium-item";
+          rowSpan = 4;
+          colSpan = 2;
+        } else{
+          received.itemStyle = "small-item";
+          rowSpan = 4;
+          colSpan = 1
+        }
+
+        if(received.likes%10 > 3)
         {
           received.img = "https://unsplash.it/300/500?random";
-          colSpan+=2;
+          if(ratio > 4) {
+            colSpan += 2;
+          } else {
+            colSpan += 1;
+          }
           received.hasImage = true;
+
+          if(received.likes%5 > 3){
+            received.useVerticalImage = true;
+          }
         }
-        received.row = rowSpan + 4;
-        received.col = colSpan + 1;
+        received.row = rowSpan;
+        received.col = colSpan;
 
       });
       vm.awesomeThings = data;
+
+      vm.currentData = data;
 
       //$scope.digest();
     });
