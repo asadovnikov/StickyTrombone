@@ -155,13 +155,6 @@ section.jumbotron {
   }
 }
 
-footer{
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
 .drag-drop.can-drop {
   &.do{
     border: 3px solid #0EAD69;
@@ -298,6 +291,11 @@ footer{
 
 md-backdrop.md-opaque{
   opacity: .8 !important;
+}
+
+md-backdrop.disabled
+{
+  display:none;
 }
 
 md-dialog{

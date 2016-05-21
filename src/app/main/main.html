@@ -1,50 +1,52 @@
 <div >
-  <md-button class="md-fab md-mini" aria-label="Eat cake" ng-click="main.createPost($event)" >
-    <i class="material-icons">add</i>
-  </md-button>
-  <div flex class="current-state-indicator {{main.viewState}}" ng-if="main.viewState !== 'all'">&nbsp;</div>
-  <div class="project-settings" layout="row" layout-align="end center">
-    <div ng-if="main.viewState !== 'all'" flex class="back-to-all-items" layout="row"><div class="back-icon">← </div><md-button md-no-ink class="md-primary" ng-click="main.loadAllPosts()">Неотсортированные идеи</md-button></div>
-    <div>Проект:</div>
-    <md-menu md-position-mode="target-right target">
-    <md-button md-no-ink class="md-primary" ng-click="main.openSelectProjectMenu($mdOpenMenu, $event)">IMWU</md-button>
-      <md-menu-content width="4">
-        <md-menu-item>
-          <md-button ng-click="ctrl.redial($event)">
-            Project 1
-          </md-button>
-        </md-menu-item>
-        <md-menu-item>
-          <md-button ng-click="ctrl.checkVoicemail()">
-            Project 2
-          </md-button>
-        </md-menu-item>
-        <md-menu-divider></md-menu-divider>
-        <md-menu-item>
-          <md-button ng-click="ctrl.toggleNotifications()">
-            Добавить проект
-          </md-button>
-        </md-menu-item>
-      </md-menu-content>
-    </md-menu>
-    <div>Сортировка:</div>
-    <md-menu md-position-mode="target-right target">
-      <md-button md-no-ink class="md-primary" ng-click="main.openOrderType($mdOpenMenu, $event)">{{main.orderTypeText}}</md-button>
-      <md-menu-content width="4">
-        <md-menu-item>
-          <md-button ng-click="main.changeOrderType('-id', $event)">
-            дате создания
-          </md-button>
-        </md-menu-item>
-        <md-menu-item>
-          <md-button ng-click="main.changeOrderType('-likes', $event)">
-            по просмотрам
-          </md-button>
-        </md-menu-item>
-      </md-menu-content>
-    </md-menu>
-  </div>
+
+
   <md-content>
+    <md-button class="md-fab md-mini" aria-label="Eat cake" ng-click="main.createPost($event)" >
+      <i class="material-icons">add</i>
+    </md-button>
+    <div flex class="current-state-indicator {{main.viewState}}" ng-if="main.viewState !== 'all'">&nbsp;</div>
+    <div class="project-settings" layout="row" layout-align="end center">
+      <div ng-if="main.viewState !== 'all'" flex class="back-to-all-items" layout="row"><div class="back-icon">← </div><md-button md-no-ink class="md-primary" ng-click="main.loadAllPosts()">Неотсортированные идеи</md-button></div>
+      <div>Проект:</div>
+      <md-menu md-position-mode="target-right target">
+        <md-button md-no-ink class="md-primary" ng-click="main.openSelectProjectMenu($mdOpenMenu, $event)">IMWU</md-button>
+        <md-menu-content width="4">
+          <md-menu-item>
+            <md-button ng-click="ctrl.redial($event)">
+              Project 1
+            </md-button>
+          </md-menu-item>
+          <md-menu-item>
+            <md-button ng-click="ctrl.checkVoicemail()">
+              Project 2
+            </md-button>
+          </md-menu-item>
+          <md-menu-divider></md-menu-divider>
+          <md-menu-item>
+            <md-button ng-click="ctrl.toggleNotifications()">
+              Добавить проект
+            </md-button>
+          </md-menu-item>
+        </md-menu-content>
+      </md-menu>
+      <div>Сортировка:</div>
+      <md-menu md-position-mode="target-right target">
+        <md-button md-no-ink class="md-primary" ng-click="main.openOrderType($mdOpenMenu, $event)">{{main.orderTypeText}}</md-button>
+        <md-menu-content width="4">
+          <md-menu-item>
+            <md-button ng-click="main.changeOrderType('-id', $event)">
+              дате создания
+            </md-button>
+          </md-menu-item>
+          <md-menu-item>
+            <md-button ng-click="main.changeOrderType('-likes', $event)">
+              по просмотрам
+            </md-button>
+          </md-menu-item>
+        </md-menu-content>
+      </md-menu>
+    </div>
 
     <div flex layout-align="space-between stretch" class="main-content">
       <md-grid-list
@@ -75,9 +77,11 @@
         </md-grid-tile>
       </md-grid-list>
     </div>
+    <md-backdrop class="st-backdrop md-opaque md-default-theme md-sidenav-backdrop-custom" ng-class="{'disabled' : !main.doingDragging}"></md-backdrop>
     <footer>
       <acme-navbar creation-date="main.creationDate" parent-model="main"></acme-navbar>
     </footer>
   </md-content>
 
 </div>
+

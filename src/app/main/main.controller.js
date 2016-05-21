@@ -46,6 +46,12 @@
     };
 
     vm.viewPost = function(postId, ev){
+      console.log('view-post');
+      if(vm.dirtyItem) {
+        vm.dirtyItem = false;
+        return;
+      }
+
       ev.stopPropagation();
       var postItem = $filter('getById')(vm.awesomeThings, postId);
       $mdDialog.show({
@@ -238,25 +244,46 @@
         // enable autoScroll
         autoScroll: false,
 
+        onstart: function(event){
+          console.log('doing start');
+          angular.element('.st-backdrop').removeClass('disabled');
+          angular.element('.decision-panel').addClass('active');
+
+          vm.dirtyItem = true;
+          vm.doingDragging = true;
+        },
         // call this function on every dragmove event
         onmove: dragMoveListener,
         // call this function on every dragend event
         onend: function (event) {
+          console.log('onend');
           event.target.setAttribute('startDrag', 'false');
           event.target.classList.remove('start-dragging');
           var target = event.target,
           // keep the dragged position in the data-x/data-y attributes
             x = (parseFloat(target.getAttribute('initial-data-x')) || 0),
             y = (parseFloat(target.getAttribute('initial-data-y')) || 0);
+
+          event.target.setAttribute('data-x', x);
+          event.target.setAttribute('data-y', y);
+
           // translate the element
           target.style.webkitTransform =
             target.style.transform =
               'translate(' + x + 'px, ' + y + 'px)';
+          console.log('start dragging set to false');
+          vm.doingDragging = false;
+          console.log('remove backdrop');
+          angular.element('.st-backdrop').addClass('disabled');
+          angular.element('.decision-panel').removeClass('active');
         }
       });
 
     function dragMoveListener (event) {
+      console.log('onmove');
       event.target.classList.add('start-dragging');
+      vm.startPostOpenning = true;
+
       if(event.target.getAttribute('startDrag') !== 'true')
       {
         event.target.setAttribute('initial-data-x', event.dx);
@@ -316,6 +343,7 @@
         //event.relatedTarget.textContent = 'Dragged out';
       },
       ondrop: function (event) {
+        console.log('ondrop');
         var id = event.relatedTarget.getAttribute('item-id');
         var item = $filter('getById')(vm.awesomeThings, id);
         var index = vm.awesomeThings.indexOf(item);
@@ -333,6 +361,8 @@
         }
 
         vm.awesomeThings.splice(index, 1);
+        //event.preventDefault();
+        //event.stopPropagation();
         //$scope.$apply();
         //$scope.$digest();
         //event.relatedTarget.textContent = 'Dropped';
