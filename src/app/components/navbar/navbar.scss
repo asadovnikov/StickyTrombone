@@ -21,17 +21,17 @@ $decision-item-height: 64px;
 
   &.do{
     .decision-panel_do-it{
-      //height: 70px;
+      height: 70px;
     }
   }
   &.doLater{
     .decision-panel_do-it-later{
-      //height: 70px;
+      height: 70px;
     }
   }
   &.doNotDo{
     .decision-panel_do-not-do{
-      //height: 70px;
+      height: 70px;
     }
   }
   text-transform: uppercase;
@@ -42,6 +42,8 @@ $decision-item-height: 64px;
     height: $decision-item-height;
     text-align: center;
     font-size: 14px;
+    padding-top: 2px;
+    letter-spacing: 1px;
   }
 
   .decision-panel_do-not-do{

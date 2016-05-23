@@ -63,12 +63,8 @@
                 <p>{{ awesomeThing.description }}</p>
               </div>
               <div class="action-panel">
-                <div flex layout="row">
-                  <md-button aria-label="like" class="md-icon-button" ng-click="main.addLike(awesomeThing.id)">
-                    <i class="material-icons" ng-class="awesomeThing.liked ? 'item-liked' : 'item-waiting-for-like'">favorite_border</i>
-                  </md-button>
-
-                  <div class="likes-count">{{awesomeThing.likes}}</div>
+                <div flex layout="column" class="{{awesomeThing.itemStyle}}" ng-attr-layout="{{awesomeThing.itemStyle == 'small-item' && 'column' || 'row'}}">
+                  <div class="post-creation-time" am-time-ago="{{awesomeThing.createdDate}}"></div>
                   <div flex class="author">{{awesomeThing.fname}} {{awesomeThing.lname}}</div>
                 </div>
               </div>

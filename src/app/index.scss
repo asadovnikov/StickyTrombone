@@ -58,8 +58,9 @@ html, body {
   height: 100%;
 }
 
-*{
+div{
   outline: 0;
+  font-family: 'Avenir', "Helvetica Neue", 'Roboto Slab', serif !important;
 }
 
 [layout=row] {
@@ -91,19 +92,22 @@ html, body {
     .back-icon{
       padding-left: 50px;
       color: #4A90E2;
-      padding-top: 10px;
+      padding-top: 4px;
     }
   }
 
   div{
     padding-left: 50px;
+    line-height: 36px;
+    font-size: 14px;
+    padding-top: 4px;
   }
   .md-primary{
     margin: 0;
     min-width: 0;
     padding: 3px 0 0 5px;
     span{
-      border-bottom: 1px dotted #4A90E2;;
+      border-bottom: 1px solid #BBD0E9;;
       text-transform: none;
       color: #4A90E2;
     }
@@ -171,9 +175,73 @@ section.jumbotron {
   color: #fb4848 !important;
 }
 
+md-dialog{
+  .tile-text{
+    align-self: stretch;
+    color: #333;
+    padding-left: 20px;
+    padding-top: 20px;
+    padding-right: 10px;
+
+    p{
+      -webkit-margin-before: 0;
+      -webkit-margin-after: 0;
+    }
+
+    &.small-item{
+      font-size: 14px;
+    }
+    &.medium-item{
+      font-size: 24px;
+      line-height: 32px;
+    }
+    &.big-item{
+      font-size: 36px;
+      line-height: 43px;
+    }
+  }
+  .action-panel{
+    height: 3em;
+    width: 100%;
+    .material-icons{
+      font-size: 14px;
+      color: rgba(51,51,51, 0.3);
+    }
+
+    .small-item{
+      .post-creation-time{
+
+        padding-top: 0;
+      }
+      .author{
+        padding-top: 0px;
+        text-align: left;
+        padding-left: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; //TODO: find a better way to have ellipsis
+      }
+    }
+
+
+    //align-self: stretch;
+  }
+
+  .author{
+    //position: absolute;
+    //right: 12px;
+    //bottom: 12px;
+    padding-top: 10px;
+    text-align: right;
+    padding-right: 10px;
+    font-size: 14px;
+    color: rgba(51,51,51, 0.3);
+  }
+}
+
 .main-content{
   background-color: #f0f0f0;
-  padding: 0 30px 150px;
+  padding: 5px 30px 150px;
   height: 100%;
 
   md-grid-tile{
@@ -196,9 +264,11 @@ section.jumbotron {
       }
       &.medium-item{
         font-size: 24px;
+        line-height: 32px;
       }
       &.big-item{
         font-size: 36px;
+        line-height: 43px;
       }
     }
     .action-panel{
@@ -207,6 +277,21 @@ section.jumbotron {
       .material-icons{
         font-size: 14px;
         color: rgba(51,51,51, 0.3);
+      }
+
+      .small-item{
+        .post-creation-time{
+
+          padding-top: 0;
+        }
+        .author{
+          padding-top: 0px;
+          text-align: left;
+          padding-left: 20px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis; //TODO: find a better way to have ellipsis
+        }
       }
 
 
@@ -264,11 +349,13 @@ section.jumbotron {
       font-size: 36px;
       line-height: 40px;
       height: 80px;
+      margin-top: -20px;
     }
   }
 
   .create-post-hint{
     font-size: 16px;
+    line-height: 20px;
     color: rgba(51,51,51, 0.3);
     padding: 0 20px 30px 25px;
   }
@@ -279,12 +366,19 @@ section.jumbotron {
   width: 100%;
   margin: 16px 0 0;
   color: #fff;
+  font-size: 14px;
+  height: 60px;
+  line-height: 0;
+  span{
+    line-height: 59px;
+    letter-spacing: 1px;
+  }
 }
 
 .create-post-action-hint{
   width: 100%;
   color: rgba(255, 255, 255, .4);
-  font-size: 17px;
+  font-size: 14px;
   text-align: center;
   padding-top: 16px;
 }
@@ -323,6 +417,13 @@ md-dialog{
   z-index: 500;
 }
 
+.post-creation-time{
+
+  padding: 10px 0 0 20px;
+  font-size: 14px;
+  color: rgba(51,51,51, 0.3);
+}
+
 .post-view-dialog{
   max-width: 600px;
   min-width: 600px;
@@ -331,7 +432,7 @@ md-dialog{
     background-color: #F3F3F3;
     padding-left: 20px;
     .comment-to-post{
-      padding-top: 25px;
+      padding-top: 18px;
 
       .comment-avatar{
         width: 45px;
@@ -348,6 +449,7 @@ md-dialog{
       }
       .comment-text{
         font-size: 16px;
+        line-height: 20px;
         font-color: #333;
       }
       .comment-info{

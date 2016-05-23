@@ -29,7 +29,7 @@
     vm.creationDate = 1463047443957;
     vm.showToastr = showToastr;
     vm.addLike = addLike;
-    vm.orderField = '-likes';
+    vm.orderField = '';
     vm.orderTypeText = 'по просмотрам';
     var originatorEv;
     var selectOrderItem;
@@ -47,6 +47,7 @@
 
     vm.viewPost = function(postId, ev){
       console.log('view-post');
+      document.body.style.cursor = 'pointer';
       if(vm.dirtyItem) {
         vm.dirtyItem = false;
         return;
@@ -65,10 +66,7 @@
               '</div>' +
             '<div class="action-panel">' +
               '<div flex layout="row">' +
-                '<md-button aria-label="like" class="md-icon-button">' +
-                  '<i class="material-icons">favorite_border</i>' +
-                '</md-button>' +
-                '<div class="likes-count">{{post.likes}}</div>' +
+                '<div class="post-creation-time" am-time-ago="{{post.createdDate}}"></div>' +
                 '<div flex class="author">{{post.fname}} {{post.lname}}</div>' +
               '</div>' +
             '</div>' +
@@ -148,7 +146,7 @@
         '     <label>Есть идея? Пиши прямо тут!</label>' +
         '     <textarea rows="2" ng-paste="handlePaste($event)" ng-model="postText" hotkey="{\'shift+enter\': createNewPost}"></textarea> ' +
         '   </md-input-container>' +
-          '<img src="{{imageUrl}}" style="height: 66px; width: 66px;" ng-show="imageUrl.length > 0" />'+
+          '<img src="{{imageUrl}}" style="height: 66px; width: 66px;border-radius: 4px;border: 1px solid #ccc; margin-bottom: 15px;" ng-show="imageUrl.length > 0" />'+
         ' </div>' +
         ' <div flex="100" class="create-post-hint" ng-hide="imageUrl.length > 0">Чтобы присоединить картинку, перетяни ее в окно браузера или просто вставь ссылку.</div>' +
 
@@ -309,7 +307,7 @@
 
     interact('.dropzone').dropzone({
       // Require a 75% element overlap for a drop to be possible
-      overlap: 0.10,
+      overlap: 0.40,
 
       // listen for drop related events:
 
@@ -407,6 +405,7 @@
         'description': '{lorem|10}',
         'likes' : '{number|70}',
         'callback': "JSON_CALLBACK",
+        'createdDate' : '{date|1-1-2016,05-22-2016}',
         'id': '{index}'
       }
     };
@@ -417,6 +416,7 @@
         //if has image, and col span 2 should be set
 
         var ratio  = Math.floor(received.likes/10);
+        received.createdDate = new Date(received.createdDate);
         var rowSpan = 1;
         var colSpan = 1;
 
