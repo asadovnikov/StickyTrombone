@@ -203,7 +203,17 @@ md-dialog .author {
   line-height: 32px; }
 .main-content md-grid-tile .tile-text.big-item {
   font-size: 36px;
-  line-height: 43px; }
+  line-height: 43px; height: 172.8px;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis; }
+        .main-content md-grid-tile .tile-text.big-item p {
+          height: 172.8px;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis; }
 .main-content md-grid-tile .action-panel {
   height: 3em;
   width: 100%; }
