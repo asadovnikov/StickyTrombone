@@ -477,6 +477,56 @@ md-dialog{
 
 $plus-button-color: #50E3C2;
 
+.user-items{
+  padding: 20px;
+  background-color: #f0f0f0;
+  .image-avatar{
+    img {
+      width: 84px;
+      height: 84px;
+    }
+  }
+  .user-item-name{
+    padding-left: 14px;
+    .title{
+      color: #9E9E9E;
+      font-size: 16px;
+      padding-left: 5px;
+    }
+    .user-name{
+      color: #333;
+      font-size: 72px;
+      margin-top: -10px;
+    }
+  }
+  .user-items-info{
+    text-align: right;
+    .under-consideration, .do-not-do, .do-later, .do{
+      font-size: 56px;
+      color: white;
+      border-radius: 4px;
+      width: 120px;
+      text-align: center;
+      padding: 7px 0px;
+      margin-left: 25px;
+    }
+    .under-consideration{
+      background-color: transparent;
+      color: #545252;
+      border: 2px solid #D5D5D5;
+    }
+    .do-not-do{
+      background-color: #DE8043;
+    }
+    .do-later{
+      background-color: #FFC857;
+    }
+    .do{
+      background-color: #9ACF64;
+    }
+  }
+}
+
 /**
  *  Do not remove the comment below. It's the markers used by gulp-inject to inject
  *  all your sass files automatically

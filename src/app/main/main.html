@@ -2,11 +2,24 @@
 
 
   <md-content>
-    <md-button class="md-fab md-mini" aria-label="Eat cake" ng-click="main.createPost($event)" >
+    <md-button ng-if="main.currentView !== 'userView'" class="md-fab md-mini" aria-label="Eat cake" ng-click="main.createPost($event)" >
       <i class="material-icons">add</i>
     </md-button>
     <div flex class="current-state-indicator {{main.viewState}}" ng-if="main.viewState !== 'all'">&nbsp;</div>
-    <div class="project-settings" layout="row" layout-align="end center">
+    <div flex layout="row" class="user-items" ng-if="main.currentView === 'userView'">
+      <div class="image-avatar"> <img src="https://s3.amazonaws.com/uifaces/faces/twitter/jm_denis/128.jpg" style="border-radius: 50%;" /></div>
+      <div class="user-item-name" layout="column">
+        <div class="title">ПОЛЬЗОВАТЕЛЬ</div>
+        <div class="user-name">{{main.currentUser}}</div>
+      </div>
+      <div flex class="user-items-info" layout="row" layout-align="end center">
+        <div class="under-consideration">53</div>
+        <div class="do-not-do">20</div>
+        <div class="do-later">5</div>
+        <div class="do">93</div>
+      </div>
+    </div>
+    <div ng-if="main.currentView !== 'userView'" class="project-settings" layout="row" layout-align="end center">
       <div ng-if="main.viewState !== 'all'" flex class="back-to-all-items" layout="row"><div class="back-icon">← </div><md-button md-no-ink class="md-primary" ng-click="main.loadAllPosts()">Неотсортированные идеи</md-button></div>
       <div>Проект:</div>
       <md-menu md-position-mode="target-right target">
@@ -65,7 +78,7 @@
               <div class="action-panel">
                 <div flex layout="column" class="{{awesomeThing.itemStyle}}" ng-attr-layout="{{awesomeThing.itemStyle == 'small-item' && 'column' || 'row'}}">
                   <div class="post-creation-time" am-time-ago="{{awesomeThing.createdDate}}"></div>
-                  <div flex class="author">{{awesomeThing.fname}} {{awesomeThing.lname}}</div>
+                  <div flex class="author" ng-click="main.openUser(awesomeThing.userFullName)">{{awesomeThing.fname}} {{awesomeThing.lname}}</div>
                 </div>
               </div>
             </div>

@@ -40,6 +40,76 @@
       vm.viewState = state;
     };
 
+    vm.openUser = function(userName){
+      vm.currentView = 'userView';
+      vm.currentUser = userName;
+      var config = {
+        params: {
+          'rows': 100,
+          'fname': '{firstName}',
+          'lname': '{lastName}',
+          'description': '{lorem|10}',
+          'likes' : '{number|70}',
+          'callback': "JSON_CALLBACK",
+          'createdDate' : '{date|1-1-2016,05-22-2016}',
+          'id': '{index}'
+        }
+      };
+
+      $http.jsonp("http://www.filltext.com", config, {}).
+      success(function (data) {
+        angular.forEach(data, function(received){
+          //if has image, and col span 2 should be set
+
+          var ratio  = Math.floor(received.likes/10);
+          received.createdDate = new Date(received.createdDate);
+          received.userFullName = received.fname + ' ' + received.lname;
+          var rowSpan = 1;
+          var colSpan = 1;
+
+          if(ratio > 4)
+          {
+            received.itemStyle = "big-item";
+            rowSpan = 5;
+            colSpan = 2;
+          }
+          else if(ratio >2 && ratio >= 4)
+          {
+            received.itemStyle = "medium-item";
+            rowSpan = 4;
+            colSpan = 2;
+          } else{
+            received.itemStyle = "small-item";
+            rowSpan = 4;
+            colSpan = 1
+          }
+
+          if(received.likes%10 > 3)
+          {
+            received.img = "https://unsplash.it/300/500?random";
+            if(ratio > 4) {
+              colSpan += 2;
+            } else {
+              colSpan += 1;
+            }
+            received.hasImage = true;
+
+            if(received.likes%5 > 3){
+              received.useVerticalImage = true;
+            }
+          }
+          received.row = rowSpan;
+          received.col = colSpan;
+
+        });
+        vm.awesomeThings = data;
+
+        //vm.currentData = data;
+
+        //$scope.digest();
+      });
+    };
+
     vm.loadAllPosts = function(){
       vm.viewState = 'all';
       vm.awesomeThings = vm.currentData;
@@ -417,6 +487,7 @@
 
         var ratio  = Math.floor(received.likes/10);
         received.createdDate = new Date(received.createdDate);
+        received.userFullName = received.fname + ' ' + received.lname;
         var rowSpan = 1;
         var colSpan = 1;
 
