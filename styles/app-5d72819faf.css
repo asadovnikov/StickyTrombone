@@ -203,7 +203,17 @@ md-dialog .author {
   line-height: 32px; }
 .main-content md-grid-tile .tile-text.big-item {
   font-size: 36px;
-  line-height: 43px; }
+  line-height: 43px; height: 172.8px;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis; }
+        .main-content md-grid-tile .tile-text.big-item p {
+          height: 172.8px;
+          -webkit-line-clamp: 4;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis; }
 .main-content md-grid-tile .action-panel {
   height: 3em;
   width: 100%; }
@@ -376,11 +386,11 @@ md-dialog .ng-hide:not(.ng-hide-animate):not(.create-post-hint) {
   color: #545252;
   border: 2px solid #D5D5D5; }
 .user-items .user-items-info .do-not-do {
-  background-color: #DE8043; }
+  background-color: #DF4545; }
 .user-items .user-items-info .do-later {
-  background-color: #FFC857; }
+  background-color: #F5A623; }
 .user-items .user-items-info .do {
-  background-color: #9ACF64; }
+  background-color: #0EAD69; }
 
 /**
  *  Do not remove the comment below. It's the markers used by gulp-inject to inject
