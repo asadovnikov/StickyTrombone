@@ -62,7 +62,7 @@ div {
   padding: 0.2em 0; }
 
 .md-fab {
-  position: absolute;
+  position: fixed;
   top: 10px;
   left: 5px; }
   .md-fab i {
