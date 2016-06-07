@@ -17,9 +17,16 @@
   });
 
   /** @ngInject */
-  function MainController($timeout, $http, toastr, $filter, $scope, $mdDialog) {
+  function MainController($timeout, $http, toastr, $filter, $scope, $mdDialog, $firebaseObject, $firebaseArray, $rootScope, Auth) {
     var vm = this;
-
+    vm.authenticatedUser= Auth.$getAuth();
+    Auth.$onAuthStateChanged(function(user) {
+      //$rootScope.loggedIn = !!user;
+      vm.authenticatedUser.currentUserAuthData = user;
+    });
+    var ref = firebase.database().ref().child('posts');
+    vm.fireBasePosts = ref;
+    vm.fireBaseArrayPosts = $firebaseArray(ref);
     vm.awesomeThings = [];
     vm.viewState = 'all';
     vm.toDoItems = [];
@@ -38,6 +45,7 @@
     vm.refresh = function(newItems, state){
       vm.awesomeThings = newItems;
       vm.viewState = state;
+      vm.currentView = state;
     };
 
     vm.openUser = function(userName){
@@ -86,7 +94,7 @@
 
           if(received.likes%10 > 3)
           {
-            received.img = "https://unsplash.it/300/500?random";
+            received.img = "https://unsplash.it/500/600?random";
             if(ratio > 4) {
               colSpan += 2;
             } else {
@@ -112,6 +120,7 @@
 
     vm.loadAllPosts = function(){
       vm.viewState = 'all';
+      vm.currentView = 'all';
       vm.awesomeThings = vm.currentData;
     };
 
@@ -137,7 +146,8 @@
             '<div class="action-panel">' +
               '<div flex layout="row">' +
                 '<div class="post-creation-time" am-time-ago="{{post.createdDate}}"></div>' +
-                '<div flex class="author">{{post.fname}} {{post.lname}}</div>' +
+                '<div flex class="author"> — {{post.fname}} {{post.lname}}</div>' +
+                '<div flex class="brunch-btn"><md-button ng-click="createFork()"><i class="material-icons">share</i>РАЗВИТЬ</md-button></div>' +
               '</div>' +
             '</div>' +
             '</div>' +
@@ -172,11 +182,81 @@
         targetEvent: ev,
         clickOutsideToClose:true,
         fullscreen: false
+      }).then(function(post){
+        vm.currentItem = post;
+        vm.currentView = 'forkItem';
+        var config = {
+          params: {
+            'rows': 7,
+            'fname': '{firstName}',
+            'lname': '{lastName}',
+            'description': '{lorem|10}',
+            'likes' : '{number|70}',
+            'callback': "JSON_CALLBACK",
+            'createdDate' : '{date|1-1-2016,05-22-2016}',
+            'id': '{index}'
+          }
+        };
+
+        $http.jsonp("http://www.filltext.com", config, {}).
+        success(function (data) {
+          angular.forEach(data, function(received){
+            //if has image, and col span 2 should be set
+
+            var ratio  = Math.floor(received.likes/10);
+            received.createdDate = new Date(received.createdDate);
+            received.userFullName = received.fname + ' ' + received.lname;
+            var rowSpan = 1;
+            var colSpan = 1;
+
+            if(ratio > 4)
+            {
+              received.itemStyle = "big-item";
+              rowSpan = 5;
+              colSpan = 2;
+            }
+            else if(ratio >2 && ratio >= 4)
+            {
+              received.itemStyle = "medium-item";
+              rowSpan = 4;
+              colSpan = 2;
+            } else{
+              received.itemStyle = "small-item";
+              rowSpan = 4;
+              colSpan = 1
+            }
+
+            if(received.likes%10 > 3)
+            {
+              received.img = "https://unsplash.it/500/600?random";
+              if(ratio > 4) {
+                colSpan += 2;
+              } else {
+                colSpan += 1;
+              }
+              received.hasImage = true;
+
+              if(received.likes%5 > 3){
+                received.useVerticalImage = true;
+              }
+            }
+            received.row = rowSpan;
+            received.col = colSpan;
+
+          });
+          vm.awesomeThings = data;
+
+          //$scope.digest();
+        });
       });
     };
 
     function ViewPostController($scope, $mdDialog, post){
       $scope.post = post;
+      $scope.createFork = function(){
+        console.log($scope.postText);
+        $mdDialog.hide(post);
+      };
       $scope.myComment = "";
       var config = {
         params: {
@@ -239,6 +319,18 @@
         {
           col +=1;
         }
+        vm.fireBaseArrayPosts.$add({
+          'fname' : 'Me',
+          'lname': 'Gusta',
+          'description' : post.text,
+          'likes' : 0,
+          'img' : post.image,
+          'hasImage' : hasImage,
+          'col' : col,
+          'row' : 4,
+          'itemStyle' : "medium-item",
+          'id' : 101
+        });
         vm.awesomeThings.push(
           {
             'fname' : 'Me',
@@ -480,57 +572,60 @@
       }
     };
 
-    $http.jsonp("http://www.filltext.com", config, {}).
-    success(function (data) {
-      angular.forEach(data, function(received){
-        //if has image, and col span 2 should be set
+    vm.awesomeThings = vm.fireBaseArrayPosts;
 
-        var ratio  = Math.floor(received.likes/10);
-        received.createdDate = new Date(received.createdDate);
-        received.userFullName = received.fname + ' ' + received.lname;
-        var rowSpan = 1;
-        var colSpan = 1;
-
-        if(ratio > 4)
-        {
-          received.itemStyle = "big-item";
-          rowSpan = 5;
-          colSpan = 2;
-        }
-        else if(ratio >2 && ratio >= 4)
-        {
-          received.itemStyle = "medium-item";
-          rowSpan = 4;
-          colSpan = 2;
-        } else{
-          received.itemStyle = "small-item";
-          rowSpan = 4;
-          colSpan = 1
-        }
-
-        if(received.likes%10 > 3)
-        {
-          received.img = "https://unsplash.it/300/500?random";
-          if(ratio > 4) {
-            colSpan += 2;
-          } else {
-            colSpan += 1;
-          }
-          received.hasImage = true;
-
-          if(received.likes%5 > 3){
-            received.useVerticalImage = true;
-          }
-        }
-        received.row = rowSpan;
-        received.col = colSpan;
-
-      });
-      vm.awesomeThings = data;
-
-      vm.currentData = data;
-
-      //$scope.digest();
-    });
+    //$http.jsonp("http://www.filltext.com", config, {}).
+    //success(function (data) {
+    //  angular.forEach(data, function(received){
+    //    //if has image, and col span 2 should be set
+    //
+    //    var ratio  = Math.floor(received.likes/10);
+    //    received.createdDate = new Date(received.createdDate);
+    //    received.userFullName = received.fname + ' ' + received.lname;
+    //    var rowSpan = 1;
+    //    var colSpan = 1;
+    //
+    //    if(ratio > 4)
+    //    {
+    //      received.itemStyle = "big-item";
+    //      rowSpan = 5;
+    //      colSpan = 2;
+    //    }
+    //    else if(ratio >2 && ratio >= 4)
+    //    {
+    //      received.itemStyle = "medium-item";
+    //      rowSpan = 4;
+    //      colSpan = 2;
+    //    } else{
+    //      received.itemStyle = "small-item";
+    //      rowSpan = 4;
+    //      colSpan = 1
+    //    }
+    //
+    //    if(received.likes%10 > 3)
+    //    {
+    //      received.img = "https://unsplash.it/500/600?random";
+    //      if(ratio > 4) {
+    //        colSpan += 2;
+    //      } else {
+    //        colSpan += 1;
+    //      }
+    //      received.hasImage = true;
+    //
+    //      if(received.likes%5 > 3){
+    //        received.useVerticalImage = true;
+    //      }
+    //    }
+    //    received.row = rowSpan;
+    //    received.col = colSpan;
+    //
+    //  });
+    //  vm.awesomeThings = data;
+    //  vm.currentItem = data[1];
+    //
+    //  vm.currentData = data;
+    //
+    //  //$scope.digest();
+    //});
   }
 })();

@@ -1,7 +1,10 @@
 {
   "name": "stickyTrombone",
   "version": "0.0.0",
-  "dependencies": {},
+  "dependencies": {
+    "angular-md5": "^0.1.10",
+    "angularfire": "^2.0.1"
+  },
   "scripts": {
     "test": "gulp test"
   },
