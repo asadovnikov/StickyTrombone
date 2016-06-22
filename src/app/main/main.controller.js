@@ -1,6 +1,41 @@
 (function() {
   'use strict';
 
+  if (!Array.prototype.filter) {
+    Array.prototype.filter = function(fun/*, thisArg*/) {
+      'use strict';
+
+      if (this === void 0 || this === null) {
+        throw new TypeError();
+      }
+
+      var t = Object(this);
+      var len = t.length >>> 0;
+      if (typeof fun !== 'function') {
+        throw new TypeError();
+      }
+
+      var res = [];
+      var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+      for (var i = 0; i < len; i++) {
+        if (i in t) {
+          var val = t[i];
+
+          // NOTE: Technically this should Object.defineProperty at
+          //       the next index, as push can be affected by
+          //       properties on Object.prototype and Array.prototype.
+          //       But that method's new, and collisions should be
+          //       rare, so use the more-compatible alternative.
+          if (fun.call(thisArg, val, i, t)) {
+            res.push(val);
+          }
+        }
+      }
+
+      return res;
+    };
+  }
+
   angular
     .module('stickyTrombone')
     .controller('MainController', MainController)
@@ -17,30 +52,171 @@
   });
 
   /** @ngInject */
-  function MainController($timeout, $http, toastr, $filter, $scope, $mdDialog, $firebaseObject, $firebaseArray, $rootScope, Auth) {
+  function MainController($timeout, $http, toastr, $filter, $scope, $mdDialog, $firebaseObject, $firebaseArray, $cookies, Auth, postsService, $document) {
     var vm = this;
+    vm.$document = $document;
     vm.authenticatedUser= Auth.$getAuth();
-    Auth.$onAuthStateChanged(function(user) {
-      //$rootScope.loggedIn = !!user;
-      vm.authenticatedUser.currentUserAuthData = user;
+    postsService.getUserObj(vm.authenticatedUser.uid).once('value', function(response){
+      var users = response.val();
+      for(var userInfo in users){
+        vm.currentSystemUser = users[userInfo];
+      }
+      //users.$save(userRecord);
     });
-    var ref = firebase.database().ref().child('posts');
-    vm.fireBasePosts = ref;
-    vm.fireBaseArrayPosts = $firebaseArray(ref);
+    vm.selectedUser = {'photoURL' : 'https://x1.xingassets.com/assets/frontend_minified/img/users/nobody_m.original.jpg'};
+    vm.fireBasePosts = postsService.root;
+    vm.showClosed = false;
+    vm.allProjects = $firebaseArray(postsService.projects);
     vm.awesomeThings = [];
+    vm.currentUserDoPosts = [];
+    vm.currentUserDoLaterPosts = [];
+    vm.currentUserDoNotDoPosts = [];
+    vm.currentUserUnclassifiedPosts = [];
     vm.viewState = 'all';
-    vm.toDoItems = [];
-    vm.doLaterItems = [];
-    vm.doNotDoItems = [];
     vm.classAnimation = '';
-    vm.creationDate = 1463047443957;
-    vm.showToastr = showToastr;
-    vm.addLike = addLike;
     vm.orderField = '';
+    vm.newProjectCreation = false;
+    vm.newProjectName = '';
     vm.orderTypeText = 'по просмотрам';
+    vm.newProjectName = '';
+    vm.currentProject;
+    vm.fireBaseArrayPosts = [];
+
+    var loadProject = function(){
+      if(vm.currentProject){
+        vm.toDoItems = $firebaseArray(postsService.getDoPosts(vm.currentProject.$id));
+        vm.doLaterItems = $firebaseArray(postsService.getDoLaterPosts(vm.currentProject.$id));
+        vm.doNotDoItems = $firebaseArray(postsService.getDoNotDoPosts(vm.currentProject.$id));
+        vm.fireBaseArrayPosts = $firebaseArray(postsService.getPosts(vm.currentProject.$id));
+        vm.fireBaseArrayPosts.$loaded().then(function(posts){
+          angular.forEach(posts, function(post){
+            var postUser = {};
+            angular.forEach(vm.availableUsers, function(user){
+              if(user.uid === post.user_id){
+                postUser = user;
+              }
+            });
+            if(postUser.rating == 1){
+              post.itemStyle = 'small-item';
+              post.row = 4;
+              post.col = post.img.length > 0 ? 2: 1;
+            }
+            else if(postUser.rating == 2){
+              post.itemStyle = 'medium-item';
+              post.row = 4;
+              post.col = post.img.length > 0 ? 3: 2;
+            }
+            else{
+              post.itemStyle = 'big-item';
+              post.row = 5;
+              post.col = post.img.length > 0 ? 4: 2;
+            }
+
+            post.rating = postUser.rating;
+
+          });
+        });
+        vm.awesomeThings = vm.fireBaseArrayPosts;
+      }
+    };
+    vm.allProjects.$loaded().then(function(result){
+      var storedPost = $cookies.get('project-id');
+      angular.forEach(result, function(item){
+        if(!storedPost)
+        {
+          vm.currentProject = item;
+        }
+        else if(item.$id === storedPost){
+          vm.currentProject = item;
+        }
+      });
+      loadProject();
+    });
+
+    vm.toggleCreateProject = function($event){
+      vm.newProjectCreation = true;
+    };
+
+    vm.setActiveProject = function($event, project){
+      vm.currentProject = project;
+      $cookies.put('project-id', project.$id);
+      loadProject();
+    };
+
+    vm.currentDialog;
+    vm.newProject = function(event){
+        if(event.keyCode === 13)
+        {
+          $timeout(function(){
+            vm.$document.find('.md-menu-backdrop').triggerHandler('click');
+            vm.newProjectCreation = false;
+            if(vm.newProjectName.length > 0) {
+              vm.allProjects.$add(
+                {
+                  'project': vm.newProjectName,
+                  'created_by': vm.authenticatedUser.uid,
+                  'created_date': Date.now()
+                }
+              ).then(function(ref){
+                vm.setActiveProject(null, vm.allProjects[vm.allProjects.$indexFor(ref.key)]);
+              });
+            }
+            vm.newProjectName = '';
+          });
+        }
+    };
+    vm.showOnlyUsers = [];
+    vm.availableUsers = $firebaseArray(postsService.users);
+    vm.availableUsers.$loaded().then(function(result){
+      angular.forEach(result, function(item){
+        if(item.uid === vm.currentSystemUser.uid){
+          vm.currentUserId = item.$id;
+        }
+        vm.showOnlyUsers.push(item.uid);
+      });
+    });
+
+    $scope.filterByUser = function(item){
+      for(var user in vm.showOnlyUsers)
+      {
+        if(item.user_id === vm.showOnlyUsers[user])
+        {
+          return true;
+        }
+      }
+      return false;
+    };
+
+
+    vm.closeOpennedDialog = function(){
+      if(vm.currentDialog){
+        vm.currentDialog.hide();
+      }
+    };
+
     var originatorEv;
     var selectOrderItem;
     //vm.customFullscreen = $mdMedia('xs') || $mdMedia('sm');
+
+    vm.newGuid = function() {
+      function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+          .toString(16)
+          .substring(1);
+      }
+      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+    };
+
+    vm.isURL = function(str) {
+      var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|'+ // domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+        '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+      return pattern.test(str);
+    };
 
     vm.refresh = function(newItems, state){
       vm.awesomeThings = newItems;
@@ -48,244 +224,236 @@
       vm.currentView = state;
     };
 
-    vm.openUser = function(userName){
+    vm.openUser = function(userId, userName){
       vm.currentView = 'userView';
       vm.currentUser = userName;
-      var config = {
-        params: {
-          'rows': 100,
-          'fname': '{firstName}',
-          'lname': '{lastName}',
-          'description': '{lorem|10}',
-          'likes' : '{number|70}',
-          'callback': "JSON_CALLBACK",
-          'createdDate' : '{date|1-1-2016,05-22-2016}',
-          'id': '{index}'
-        }
-      };
-
-      $http.jsonp("http://www.filltext.com", config, {}).
-      success(function (data) {
-        angular.forEach(data, function(received){
-          //if has image, and col span 2 should be set
-
-          var ratio  = Math.floor(received.likes/10);
-          received.createdDate = new Date(received.createdDate);
-          received.userFullName = received.fname + ' ' + received.lname;
-          var rowSpan = 1;
-          var colSpan = 1;
-
-          if(ratio > 4)
-          {
-            received.itemStyle = "big-item";
-            rowSpan = 5;
-            colSpan = 2;
-          }
-          else if(ratio >2 && ratio >= 4)
-          {
-            received.itemStyle = "medium-item";
-            rowSpan = 4;
-            colSpan = 2;
-          } else{
-            received.itemStyle = "small-item";
-            rowSpan = 4;
-            colSpan = 1
-          }
-
-          if(received.likes%10 > 3)
-          {
-            received.img = "https://unsplash.it/500/600?random";
-            if(ratio > 4) {
-              colSpan += 2;
-            } else {
-              colSpan += 1;
+      vm.allUserPosts = [];
+      angular.forEach(vm.allProjects, function(project){
+        $firebaseArray(postsService.getUserPosts(project.$id, userId)).$loaded().then(function(result){
+          angular.forEach(result, function(item){
+            item.project = project.$id;
+            vm.allUserPosts.push(item);
+            if(item.state === 'do'){
+              vm.currentUserDoPosts.push(item);
             }
-            received.hasImage = true;
-
-            if(received.likes%5 > 3){
-              received.useVerticalImage = true;
+            else if(item.state === 'do-later'){
+              vm.currentUserDoLaterPosts.push(item);
             }
-          }
-          received.row = rowSpan;
-          received.col = colSpan;
-
+            else if(item.state === 'do-not-do'){
+              vm.currentUserDoNotDoPosts.push(item)
+            }
+            else{
+              vm.currentUserUnclassifiedPosts.push(item);
+            }
+          });
         });
-        vm.awesomeThings = data;
-
-        //vm.currentData = data;
-
-        //$scope.digest();
       });
+
+      vm.awesomeThings = vm.allUserPosts;
+
+      vm.currentUserDoPosts = [];
+      vm.currentUserDoLaterPosts = [];
+      vm.currentUserDoNotDoPosts = [];
+      vm.currentUserUnclassifiedPosts = [];
+
+      postsService.getUserObj(userId).once('value', function(response){
+        var users = response.val();
+        for(var userInfo in users){
+          vm.selectedUser = users[userInfo];
+        }
+      });
+
     };
 
     vm.loadAllPosts = function(){
       vm.viewState = 'all';
       vm.currentView = 'all';
-      vm.awesomeThings = vm.currentData;
+      loadProject();
     };
 
-    vm.viewPost = function(postId, ev){
+    vm.showImage = function(ev, image_src){
+      vm.showClosed = true;
+      $mdDialog.show({
+        controller: ViewImageController,
+        template: '<md-dialog aria-label="user settings" class="user-settings-dailog " ng-cloak>' +
+        '<form>' +
+        '<div layout-align="column" class="a-md-dialog image-preview">' +
+        '<img style="max-width: 60vw;" ng-src="{{image_src}}"/>'+
+        '</div>' +
+        '</form>' +
+        '</md-dialog>',
+        locals:{
+          parentModel: vm,
+          image_src: image_src
+        },
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose:true,
+        fullscreen: false
+      }).finally(function(){
+        vm.showClosed = false;
+      });
+    };
+
+    function ViewImageController($scope, $mdDialog, parentModel, image_src){
+      parentModel.currentDialog = $mdDialog;
+      $scope.parentModel = parentModel;
+      $scope.image_src = image_src;
+    }
+
+    vm.viewUsetSettings = function(ev){
+      vm.showClosed = true;
+      $mdDialog.show({
+        controller: UserSettingsController,
+        template: '<md-dialog aria-label="user settings" class="user-settings-dailog " ng-cloak>' +
+        '<form>' +
+        '<div layout-align="column" class="a-md-dialog">' +
+        '<div layout="row" ng-repeat="user in users" class="container">' +
+          '<div class="user">{{user.displayName}}</div>' +
+          '<md-checkbox ng-model="user.comment">Коментирование</md-checkbox>'+
+          '<md-checkbox ng-model="user.edit">Создание</md-checkbox>'+
+        '</div>' +
+        '<md-button flex="100" class="create-post-btn" ng-click="updateUsers()">Сохранить!</md-button>' +
+        '</div>' +
+        '</form>' +
+        '</md-dialog>',
+        locals:{
+          parentModel: vm
+        },
+        parent: angular.element(document.body),
+        targetEvent: ev,
+        clickOutsideToClose:true,
+        fullscreen: false
+      }).finally(function(){
+        vm.showClosed = false;
+      });
+    };
+
+    function UserSettingsController($scope, $mdDialog, parentModel){
+      parentModel.currentDialog = $mdDialog;
+      $scope.users = parentModel.availableUsers;
+      $scope.updateUsers = function(){
+        angular.forEach($scope.users, function(user){
+          var userRecord = $scope.users.$getRecord(user.$id);
+          $scope.users.$save(userRecord);
+        });
+        $mdDialog.hide();
+      }
+    }
+
+    vm.viewPost = function(post, ev){
       console.log('view-post');
+      var postId = post.$id;
       document.body.style.cursor = 'pointer';
       if(vm.dirtyItem) {
         vm.dirtyItem = false;
         return;
       }
-
+      console.log('stop propagation');
       ev.stopPropagation();
-      var postItem = $filter('getById')(vm.awesomeThings, postId);
-      $mdDialog.show({
+      var projectId = post.project || vm.currentProject.$id;
+      postsService.getPost(projectId, postId).once('value', function(snap){
+        var postItem = snap.val();
+        vm.showClosed = true;
+          $mdDialog.show({
         controller: ViewPostController,
         template: '<md-dialog aria-label="viewPost" ng-cloak>' +
-        '<form class="a-md-dialog post-view-dialog">' +
-          '<div flex layout="row">' +
+        '<form class="a-md-dialog post-view-dialog" ng-submit="addComment()">' +
+          '<div flex layout="row" class="post-description-container">' +
             '<div flex layout="column" layout-align="center stretch" style="align-self: stretch">' +
               '<div flex class="tile-text">' +
                 '<p>{{post.description }}</p>' +
               '</div>' +
-            '<div class="action-panel">' +
-              '<div flex layout="row">' +
-                '<div class="post-creation-time" am-time-ago="{{post.createdDate}}"></div>' +
-                '<div flex class="author"> — {{post.fname}} {{post.lname}}</div>' +
-                '<div flex class="brunch-btn"><md-button ng-click="createFork()"><i class="material-icons">share</i>РАЗВИТЬ</md-button></div>' +
+              '<div class="action-panel">' +
+                '<div flex layout="row">' +
+                  '<div class="post-creation-time" am-time-ago="{{post.created_date}}"></div>' +
+                  '<div flex class="author">— {{post.user_name}}</div>' +
+                  '<div flex class="brunch-btn" ng-show="post.user_id === parentModel.currentSystemUser.uid || parentModel.currentSystemUser.superUser"><md-button ng-click="deletePost(post)"><i class="material-icons">delete</i>УДАЛИТЬ</md-button></div>' +
+                '</div>' +
               '</div>' +
-            '</div>' +
             '</div>' +
             '<div flex="40" ng-if="post.hasImage" class="tile-image" ng-style="{\'background\' : \'url({{post.img}}) no-repeat\'}"></div>' +
           '</div>' +
           '<div flex layout="column" class="post-comments-area">' +
             '<div class="comment-to-post" ng-repeat="comment in comments" layout="row">' +
                 '<div>' +
-                  '<div class="comment-avatar" ng-style="{\'background\' : \'url({{comment.avatar}}) no-repeat\'}"></div>' +
+                  '<div class="comment-avatar" ng-style="{\'background\' : \'url({{comment.author_avatar}}) no-repeat center/100% \'}"></div>' +
                 '</div>' +
                 '<div layout="column" class="comment-info">' +
-                  '<div class="comment-user-name">{{comment.fname}} {{comment.lname}}</div>'+
-                  '<div class="comment-text">{{comment.description}}</div>'+
+                  '<div class="comment-user-name" ng-click="openUser(comment.author_id, comment.author)">{{comment.author}}</div>'+
+                  '<div class="comment-text">{{comment.comment}}</div>'+
                 ' </div>' +
             '</div>' +
-            '<div class="my-comment-container" layout="row">' +
+
+            '<div class="my-comment-container" layout="row" ng-show="parentModel.currentSystemUser.comment || parentModel.currentSystemUser.superUser">' +
               '<div class="avatar-container">' +
-                '<div class="my-avatar-small"></div>'+
+                '<div class="my-avatar-small" ng-style="{\'background\' : \'url({{parentModel.currentSystemUser.photoURL}}) no-repeat center/100% \'}"></div>'+
               '</div>'+
               '<md-input-container flex="100">' +
                 '<label>Оставьте комментарий...</label>' +
-                '<input ng-model="myComment">' +
+                '<input ng-model="text" autofocus md-maxlength="150"/>' +
               '</md-input-container>' +
             '</div>' +
           '</div>'+
         '</form>' +
         '</md-dialog>',
         locals:{
-          post: postItem
+          post: postItem,
+          parentModel: vm,
+          post_id: postId
         },
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose:true,
         fullscreen: false
       }).then(function(post){
-        vm.currentItem = post;
-        vm.currentView = 'forkItem';
-        var config = {
-          params: {
-            'rows': 7,
-            'fname': '{firstName}',
-            'lname': '{lastName}',
-            'description': '{lorem|10}',
-            'likes' : '{number|70}',
-            'callback': "JSON_CALLBACK",
-            'createdDate' : '{date|1-1-2016,05-22-2016}',
-            'id': '{index}'
-          }
-        };
-
-        $http.jsonp("http://www.filltext.com", config, {}).
-        success(function (data) {
-          angular.forEach(data, function(received){
-            //if has image, and col span 2 should be set
-
-            var ratio  = Math.floor(received.likes/10);
-            received.createdDate = new Date(received.createdDate);
-            received.userFullName = received.fname + ' ' + received.lname;
-            var rowSpan = 1;
-            var colSpan = 1;
-
-            if(ratio > 4)
-            {
-              received.itemStyle = "big-item";
-              rowSpan = 5;
-              colSpan = 2;
-            }
-            else if(ratio >2 && ratio >= 4)
-            {
-              received.itemStyle = "medium-item";
-              rowSpan = 4;
-              colSpan = 2;
-            } else{
-              received.itemStyle = "small-item";
-              rowSpan = 4;
-              colSpan = 1
-            }
-
-            if(received.likes%10 > 3)
-            {
-              received.img = "https://unsplash.it/500/600?random";
-              if(ratio > 4) {
-                colSpan += 2;
-              } else {
-                colSpan += 1;
-              }
-              received.hasImage = true;
-
-              if(received.likes%5 > 3){
-                received.useVerticalImage = true;
-              }
-            }
-            received.row = rowSpan;
-            received.col = colSpan;
-
+            //vm.currentItem = post;
+            //vm.currentView = 'forkItem';
+          }).finally(function(){
+            vm.showClosed = false;
           });
-          vm.awesomeThings = data;
-
-          //$scope.digest();
-        });
       });
     };
 
-    function ViewPostController($scope, $mdDialog, post){
+    function ViewPostController($scope, $mdDialog, post, parentModel, post_id){
+      $scope.text = "";
+      $scope.parentModel = parentModel;
+      $scope.parentModel.currentDialog = $mdDialog;
       $scope.post = post;
-      $scope.createFork = function(){
-        console.log($scope.postText);
-        $mdDialog.hide(post);
+      $scope.postId = post_id;
+      $scope.comments = $firebaseArray(postsService.getComments($scope.parentModel.currentProject.$id, post_id));
+      $scope.deletePost = function(post){
+        //console.log($scope.postText);
+        $scope.parentModel.awesomeThings.$remove($scope.parentModel.awesomeThings.$indexFor(post_id));
+        $mdDialog.hide();
       };
-      $scope.myComment = "";
-      var config = {
-        params: {
-          'rows': 3,
-          'fname': '{firstName}',
-          'lname': '{lastName}',
-          'description': '{lorem|15}',
-          'callback': "JSON_CALLBACK",
-          'id': '{index}'
-        }
+
+      $scope.openUser = function(user_id, user_name){
+        $mdDialog.hide();
+        $scope.parentModel.openUser(user_id, user_name);
       };
-      $http.jsonp("http://www.filltext.com", config, {}).
-      success(function (data) {
-        angular.forEach(data, function(received){
-            received.avatar = "https://unsplash.it/100/100?random";
+      $scope.addComment = function(){
+        $scope.comments.$add({
+          'comment' : $scope.text,
+          'created' : Date.now(),
+          'author' : parentModel.authenticatedUser.displayName,
+          'author_id' : parentModel.authenticatedUser.uid,
+          'author_avatar' : parentModel.authenticatedUser.photoURL
         });
-        $scope.comments = data;
-        //$scope.digest();
-      });
-    };
+        $scope.text = "";
+      };
+
+    }
 
 
-    vm.openSelectProjectMenu = function($mdOpenMenu, ev){
-      originatorEv = ev;
-      $mdOpenMenu(ev);
+    vm.openSelectProjectMenu = function($mdOpenMenu, $event){
+      originatorEv = $event;
+      $mdOpenMenu($event);
     };
 
     vm.createPost = function(ev){
       //var useFullScreen = ($mdMedia('sm') || $mdMedia('xs'))  && vm.customFullscreen;
+      vm.showClosed = true;
       $mdDialog.show({
         controller: DialogController,
         template: '<md-dialog aria-label="create a post" class="create-post-dailog" ng-cloak>' +
@@ -296,13 +464,14 @@
         '     <label>Есть идея? Пиши прямо тут!</label>' +
         '     <textarea rows="2" ng-paste="handlePaste($event)" ng-model="postText" hotkey="{\'shift+enter\': createNewPost}"></textarea> ' +
         '   </md-input-container>' +
-          '<img src="{{imageUrl}}" style="height: 66px; width: 66px;border-radius: 4px;border: 1px solid #ccc; margin-bottom: 15px;" ng-show="imageUrl.length > 0" />'+
+          '<img src="{{imageUrl}}" style="height: 66px; width: 66px;border-radius: 4px;border: 1px solid #ccc; margin-bottom: 15px;" ng-if="imageUrl.length > 0" />'+
+          '<i class="material-icons delete-image" ng-click="removeImage()" ng-if="imageUrl.length > 0">close</i>'+
         ' </div>' +
         ' <div flex="100" class="create-post-hint" ng-hide="imageUrl.length > 0">Чтобы присоединить картинку, перетяни ее в окно браузера или просто вставь ссылку.</div>' +
 
         '</div>' +
 
-        '<md-button flex="100" class="create-post-btn" ng-show="postText.length > 0" ng-click="createNewPost()">Запостить!</md-button>' +
+        '<md-button flex="100" class="create-post-btn" ng-show="postText.length > 0" ng-disabled="disablePost" ng-click="createNewPost()">Запостить!</md-button>' +
 
         '<div class="create-post-action-hint" ng-show="postText.length > 0" >Подсказка: ⇧ + Enter</div>'+
         '</form>' +
@@ -310,48 +479,58 @@
         ,
         parent: angular.element(document.body),
         targetEvent: ev,
+        locals: {
+          parentModel: vm
+        },
         clickOutsideToClose:false,
         fullscreen: false
       }).then(function(post){
+        vm.showClosed = false;
         var hasImage = post.image.length > 0;
         var col = 2;
         if(hasImage)
         {
           col +=1;
         }
+
+        if(!post.text && post.text.length === 0)
+        {
+          return;
+        }
+
+        var count = vm.currentSystemUser['created-posts'] || 0;
+        count = count+1;
+
+        vm.currentSystemUser['created-posts'] = count;
+
+        postsService.getUser(vm.currentUserId).update({
+          'created-posts' : count
+        });
+
         vm.fireBaseArrayPosts.$add({
-          'fname' : 'Me',
-          'lname': 'Gusta',
+          'user_name': vm.currentSystemUser.displayName,
+          'user_id': vm.currentSystemUser.uid,
+          'created_date': Date.now(),
           'description' : post.text,
-          'likes' : 0,
           'img' : post.image,
           'hasImage' : hasImage,
           'col' : col,
           'row' : 4,
           'itemStyle' : "medium-item",
-          'id' : 101
+          'state' : 'unprocessed'
         });
-        vm.awesomeThings.push(
-          {
-            'fname' : 'Me',
-            'lname': 'Gusta',
-            'description' : post.text,
-            'likes' : 0,
-            'img' : post.image,
-            'hasImage' : hasImage,
-            'col' : col,
-            'row' : 4,
-            'itemStyle' : "medium-item",
-            'id' : 101
-          });
-          //$scope.$apply();
-          //$scope.$digest();
+
+      }).finally(function(){
+        vm.showClosed = false;
       });
     };
 
-    function DialogController($scope, $mdDialog) {
+    function DialogController($scope, $mdDialog, parentModel) {
+      parentModel.currentDialog = $mdDialog;
+      $scope.parentModel = parentModel;
       $scope.postText = "";
       $scope.imageUrl = "";
+      $scope.removeImage = function(){$scope.imageUrl = '';};
       $scope.hide = function() {
         $mdDialog.hide();
       };
@@ -363,14 +542,48 @@
         $mdDialog.hide({'text' : $scope.postText, 'image' : $scope.imageUrl});
       };
       $scope.handlePaste = function(e){
-        for (var i = 0 ; i < e.originalEvent.clipboardData.items.length ; i++) {
-          var item = e.originalEvent.clipboardData.items[i];
-          if (item.type.indexOf("image") != -1) {
-            var urlCreator = window.URL || window.webkitURL;
-            var imageUrl = urlCreator.createObjectURL( item.getAsFile() );
-            $scope.imageUrl = imageUrl;
-          } else {
-            console.log("Discarding non-image paste data");
+        if(e.originalEvent.clipboardData.items) {
+          for (var i = 0; i < e.originalEvent.clipboardData.items.length; i++) {
+            var item = e.originalEvent.clipboardData.items[i];
+            if (item.type.indexOf("image") != -1) {
+
+              $scope.disablePost = true;
+              var upload = postsService.storage.child("images/" + parentModel.newGuid()).put(item.getAsFile());
+              upload.on('state_changed', function (snapshot) {
+              }, function (error) {
+              }, function () {
+                $scope.imageUrl = upload.snapshot.downloadURL;
+                $scope.disablePost = false;
+                $timeout(function () {
+                  $scope.parentModel.$document.find('.create-post-hint').triggerHandler('click');
+                });
+              });
+
+            } else if (item.kind === 'string') {
+              e.preventDefault();
+              item.getAsString(function (result) {
+                if (parentModel.isURL(result)) {
+                  $scope.imageUrl = result;
+                  e.preventDefault();
+                }
+                else {
+                  $scope.postText = $scope.postText + result;
+                }
+              });
+
+              console.log("Discarding non-image paste data");
+            }
+            $timeout(function () {
+              $scope.parentModel.$document.find('.create-post-hint').triggerHandler('click');
+            });
+          }
+        }
+        else{
+          var pastedText = e.originalEvent.clipboardData.getData('text/plain');
+          if(parentModel.isURL(pastedText))
+          {
+            e.preventDefault();
+            $scope.imageUrl = pastedText;
           }
         }
       };
@@ -391,10 +604,10 @@
     interact('.draggable')
       .draggable({
         // enable inertial throwing
-        inertia: true,
-        snap: {
-          endOnly: true
-        },
+        //inertia: true,
+        //snap: {
+        //  endOnly: true
+        //},
         // keep the element within the area of it's parent
         restrict: {
           restriction: "parent",
@@ -468,16 +681,18 @@
     //window.dragMoveListener = dragMoveListener;
 
     interact('.dropzone').dropzone({
-      // Require a 75% element overlap for a drop to be possible
       overlap: 0.40,
+      accept: '.allow',
 
       // listen for drop related events:
 
       ondropactivate: function (event) {
         // add active dropzone feedback
         event.target.classList.add('drop-active');
+        console.log('ondropactivate');
       },
       ondragenter: function (event) {
+        console.log('ondragenter');
         var draggableElement = event.relatedTarget,
           dropzoneElement = event.target;
 
@@ -498,34 +713,49 @@
         var previousState = event.relatedTarget.getAttribute('stored-state');
         event.relatedTarget.classList.remove(previousState);
 
+        console.log('ondragleave');
+
         event.target.classList.remove('drop-target');
         event.relatedTarget.classList.remove('can-drop');
         //event.relatedTarget.textContent = 'Dragged out';
       },
       ondrop: function (event) {
         console.log('ondrop');
-        var id = event.relatedTarget.getAttribute('item-id');
-        var item = $filter('getById')(vm.awesomeThings, id);
-        var index = vm.awesomeThings.indexOf(item);
+        var postId = event.relatedTarget.getAttribute('item-id');
+        console.log(event.target.getAttribute('drop-area'));
+        var previousState = event.relatedTarget.getAttribute('item-status');
+        postsService.getPost(vm.currentProject.$id, postId).update({
+          "state" : event.target.getAttribute('drop-area')
+        });
+        $timeout(function(){
+          postsService.getPost(vm.currentProject.$id, postId).once('value', function(snap){
+            var postItem = snap.val();
+            var updateObj = {};
+            created-posts
 
-        var areaType = event.target.getAttribute('drop-area');
+            var postUser = {};
+            angular.forEach(vm.availableUsers, function(user){
+              if(user.uid === postItem.user_id){
+                postUser = user;
+              }
+            });
+            var count = postUser[postItem.state] || 0;
+            updateObj[postItem.state] = count+1;
+            if(postUser[previousState] > 0)
+            {
+              updateObj[previousState] = postUser[previousState] - 1;
+            }
+            postsService.getUser(postUser.$id).update(updateObj);
+          });
+        });
 
-        if(areaType === 'do-not-do'){
-          vm.doNotDoItems.push(item);
-        }
-        else if(areaType === 'do-later'){
-          vm.doLaterItems.push(item);
-        }
-        else if(areaType === 'do'){
-          vm.toDoItems.push(item);
-        }
+        //postsService.getPost(postId).once('value', function(snap){
+        //    var postItem = snap.val();
+        //  postItem.update({
+        //    "state" : event.target.getAttribute('drop-area')
+        //  })
+        //});
 
-        vm.awesomeThings.splice(index, 1);
-        //event.preventDefault();
-        //event.stopPropagation();
-        //$scope.$apply();
-        //$scope.$digest();
-        //event.relatedTarget.textContent = 'Dropped';
       },
       ondropdeactivate: function (event) {
         // remove active dropzone feedback
@@ -541,91 +771,5 @@
         vm.classAnimation = 'rubberBand';
       }, 4000);
     }
-
-    function showToastr() {
-      toastr.info('Fork <a href="https://github.com/Swiip/generator-gulp-angular" target="_blank"><b>generator-gulp-angular</b></a>');
-      vm.classAnimation = '';
-    }
-
-    function addLike(postID){
-      angular.forEach(vm.awesomeThings, function(item) {
-        if(item.id === postID)
-        {
-          if(item.liked !== true) {
-            item.likes += 1;
-            item.liked = true;
-          }
-        }
-      });
-    }
-
-    var config = {
-      params: {
-        'rows': 100,
-        'fname': '{firstName}',
-        'lname': '{lastName}',
-        'description': '{lorem|10}',
-        'likes' : '{number|70}',
-        'callback': "JSON_CALLBACK",
-        'createdDate' : '{date|1-1-2016,05-22-2016}',
-        'id': '{index}'
-      }
-    };
-
-    vm.awesomeThings = vm.fireBaseArrayPosts;
-
-    //$http.jsonp("http://www.filltext.com", config, {}).
-    //success(function (data) {
-    //  angular.forEach(data, function(received){
-    //    //if has image, and col span 2 should be set
-    //
-    //    var ratio  = Math.floor(received.likes/10);
-    //    received.createdDate = new Date(received.createdDate);
-    //    received.userFullName = received.fname + ' ' + received.lname;
-    //    var rowSpan = 1;
-    //    var colSpan = 1;
-    //
-    //    if(ratio > 4)
-    //    {
-    //      received.itemStyle = "big-item";
-    //      rowSpan = 5;
-    //      colSpan = 2;
-    //    }
-    //    else if(ratio >2 && ratio >= 4)
-    //    {
-    //      received.itemStyle = "medium-item";
-    //      rowSpan = 4;
-    //      colSpan = 2;
-    //    } else{
-    //      received.itemStyle = "small-item";
-    //      rowSpan = 4;
-    //      colSpan = 1
-    //    }
-    //
-    //    if(received.likes%10 > 3)
-    //    {
-    //      received.img = "https://unsplash.it/500/600?random";
-    //      if(ratio > 4) {
-    //        colSpan += 2;
-    //      } else {
-    //        colSpan += 1;
-    //      }
-    //      received.hasImage = true;
-    //
-    //      if(received.likes%5 > 3){
-    //        received.useVerticalImage = true;
-    //      }
-    //    }
-    //    received.row = rowSpan;
-    //    received.col = colSpan;
-    //
-    //  });
-    //  vm.awesomeThings = data;
-    //  vm.currentItem = data[1];
-    //
-    //  vm.currentData = data;
-    //
-    //  //$scope.digest();
-    //});
   }
 })();

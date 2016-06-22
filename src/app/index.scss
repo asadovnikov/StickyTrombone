@@ -74,7 +74,7 @@ div{
   padding: 0.2em 0;
 }
 .md-fab{
-  position: absolute;
+  position: fixed;
   top: 10px;
   left: 5px;
   i{
@@ -157,6 +157,10 @@ section.jumbotron {
   }
 }
 
+md-grid-list{
+  min-height: 120vh;
+}
+
 .techs {
   display: flex;
   md-grid-tile {
@@ -206,6 +210,7 @@ md-dialog{
     align-self: stretch;
     color: #333;
     padding: 20px 10px 15px 20px;
+    word-break: break-word;
 
     p{
       -webkit-margin-before: 0;
@@ -274,6 +279,7 @@ md-dialog{
 .main-content{
   background-color: #f0f0f0;
   padding: 5px 30px 150px;
+  min-height: 110vh;
   height: 100%;
 
   md-grid-tile{
@@ -290,14 +296,38 @@ md-dialog{
         -webkit-margin-before: 0;
         -webkit-margin-after: 0;
       }
-$big-item-font-size: 36px;
+      $big-item-font-size: 36px;
       $big-item-line-height: 43px;
+
       &.small-item{
         font-size: 14px;
       }
+      $medium-item-font-size: 24px;
+      $medium-item-line-height: 32px;
+      $medium-item-height-multiplier : 1.3;
+      $medium-item-lines: 5;
+
+
       &.medium-item{
-        font-size: 24px;
-        line-height: 32px;
+        //font-size: $medium-item-font-size;
+        //line-height: $medium-item-line-height;
+        //overflow: hidden;
+        //text-overflow: ellipsis;
+        //-webkit-box-orient: vertical;
+        //-webkit-line-clamp: $medium-item-lines;
+        //height: $medium-item-height-multiplier * $medium-item-font-size * $medium-item-lines;
+        //display: -webkit-box;
+        p{
+          font-size: $medium-item-font-size;
+          line-height: $medium-item-line-height;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: $medium-item-lines;
+          height: $medium-item-height-multiplier * $medium-item-font-size * $medium-item-lines;
+          display: -webkit-box;
+          word-break: break-word;
+        }
       }
       &.big-item{
         font-size: $big-item-font-size;
@@ -399,8 +429,8 @@ $big-item-font-size: 36px;
     }
     textarea{
       border: 0;
-      font-size: 36px;
-      line-height: 40px;
+      font-size: 30px;
+      line-height: 36px;
       height: 80px;
       margin-top: -20px;
     }
@@ -464,10 +494,36 @@ md-dialog{
 .a-md-dialog{
   border-radius: 4px;
   background-color: #fff;
+  &.image-preview{
+    background-color: transparent;
+  }
+}
+
+.md-dialog-container{
+  md-dialog{
+    .a-md-dialog{
+      .post-comments-area{
+        .my-comment-container{
+          &.ng-hide{
+            display: none !important;
+          }
+        }
+      }
+    }
+  }
+}
+.delete-image{
+  position: absolute;
+  left: 64px;
+  opacity: .5;
+  &:hover{
+    opacity: 1;
+    cursor: pointer;
+  }
 }
 
 .start-dragging{
-  z-index: 500;
+  z-index: 600;
 }
 
 .post-creation-time{
@@ -484,8 +540,12 @@ md-dialog{
   .post-comments-area{
     background-color: #F3F3F3;
     padding-left: 20px;
+    -ms-flex: 0 0 auto;
+    -webkit-flex: 0 0 auto;
+    flex: 0 0 auto;
     .comment-to-post{
       padding-top: 18px;
+      min-height: 60px;
 
       .comment-avatar{
         width: 45px;
@@ -503,7 +563,8 @@ md-dialog{
       .comment-text{
         font-size: 16px;
         line-height: 20px;
-        font-color: #333;
+        font-color: #333 !important;
+        word-break: break-word;
       }
       .comment-info{
         padding-left: 10px;
@@ -522,7 +583,6 @@ md-dialog{
         border-radius: 50%;
         width: 24px;
         height: 24px;
-        background: url('https://unsplash.it/30/30?random') center;
       }
     }
   }
@@ -697,6 +757,57 @@ $plus-button-color: #50E3C2;
         color: #4A90E2;
         cursor: pointer;
       }
+    }
+  }
+}
+
+
+
+.users_selector{
+  margin: 0;
+  margin-top: -9px;
+  .md-select-icon:after{
+    color: #979797;
+    top: 6px;
+    font-size: 12px;
+  }
+  md-select-value {
+    content: "lol";
+  }
+
+}
+
+.admin-settings-btn{
+  padding-top: 13px;
+  i{
+    color: #979797;
+  }
+}
+
+.user-settings-dailog{
+  .container{
+    padding: 25px;
+    .user{
+      padding-right: 50px;
+      width: 12vw;
+    }
+  }
+}
+.flex{
+  flex-basis: auto;
+}
+.post-description-container{
+  min-height: 120px;
+}
+
+.users_selector{
+  .md-select-value{
+    border-bottom: 1px solid #BBD0E9;
+    span:first-child{
+      font-size: 14px;
+      line-height: 18px;
+      padding-top: 10px;
+      color: #4A90E2;
     }
   }
 }

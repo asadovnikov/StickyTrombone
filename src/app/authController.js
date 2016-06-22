@@ -6,7 +6,7 @@
     .module('stickyTrombone')
     .controller('AuthController', AuthController);
 
-  function AuthController($scope, $firebaseAuth, $rootScope, $location) {
+  function AuthController($scope, $firebaseAuth, $rootScope, $location, $firebaseArray, postsService) {
 
     var vm = this;
 
@@ -16,6 +16,27 @@
     var auth = $firebaseAuth();
 
     auth.$signInWithPopup('google').then(function(authData) {
+      postsService.getUserObj(authData.user.uid).once('value', function(response){
+        var user = response.val();
+        if(!user)
+        {
+          $firebaseArray(postsService.users).$add({
+            'uid' :authData.user.uid,
+            'displayName' : authData.user.displayName,
+            'photoURL' : authData.user.photoURL,
+            'email' : authData.user.email,
+            'read' : true,
+            'edit' : false,
+            'comment' : false,
+            'rating' : 1,
+            'created-posts' : 0,
+            'do-later' : 0,
+            'do' : 0,
+            'do-not-do' : 0
+          });
+        }
+      });
+
       $scope.authData = authData;
       $rootScope.authData = authData;
       $location.path('/posts');

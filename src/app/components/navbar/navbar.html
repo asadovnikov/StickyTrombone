@@ -1,4 +1,4 @@
-<md-toolbar layout="row" layout-align="center end" class="decision-panel dropzone {{vm.parentModel.viewState}}">
+<md-toolbar layout="row" layout-align="center end" class="decision-panel {{vm.parentModel.viewState}}">
  <div class="decision-panel_do-not-do dropzone" drop-area="do-not-do" flex="33" ng-click="vm.showDoNotDoItems()"><div class="do-not-do-items-count numberCircle">{{vm.parentModel.doNotDoItems.length}}</div>Не делай</div>
   <div flex="33" class="decision-panel_do-it-later dropzone" drop-area="do-later" ng-click="vm.showDoLaterItems()"><div class="do-later-items-count numberCircle" >{{vm.parentModel.doLaterItems.length}}</div>Давай потом</div>
   <div flex="33" class="decision-panel_do-it dropzone" drop-area="do" ng-click="vm.showDoItems()"><div class="do-items-count numberCircle" >{{vm.parentModel.toDoItems.length}}</div>Делай</span></div>
